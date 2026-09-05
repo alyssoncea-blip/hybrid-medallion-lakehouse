@@ -1,0 +1,10 @@
+environment                 = "stg"
+snowflake_account           = "acme.sa-east-1"
+snowflake_user              = "hybrid_lakehouse_terraform"
+snowflake_role              = "SECURITYADMIN"
+snowflake_region            = "AWS_SA_EAST_1"
+snowflake_authenticator     = "externalbrowser"
+aws_region                  = "sa-east-1"
+aws_profile                 = "hybrid-lakehouse-stg"
+notification_users          = []
+data_classification_default = "interno"

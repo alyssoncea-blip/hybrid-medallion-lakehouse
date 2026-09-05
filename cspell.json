@@ -1,16 +1,25 @@
-target-version=1.7.0
-exclude=
-  node_modules
-  target
-  dbt_packages
-  .terraform
-  .git
-  logs
-ignore-words=
-  autoglass
-  snowflake
-  dbt
-  terraform
-  medallion
-  snowpark
-  github
+{
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "autoglass",
+    "snowflake",
+    "dbt",
+    "terraform",
+    "medallion",
+    "snowpark",
+    "snowpipe",
+    "openlineage",
+    "collibra",
+    "horizon"
+  ],
+  "ignorePaths": [
+    "node_modules",
+    "target",
+    "dbt_packages",
+    ".terraform",
+    ".git",
+    "logs",
+    "package-lock.json"
+  ]
+}

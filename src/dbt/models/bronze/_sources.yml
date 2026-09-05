@@ -1,0 +1,46 @@
+version: 2
+
+sources:
+  - name: bronze_raw
+    description: >
+      Camada Bronze — landing zone raw. Tabelas externas sobre S3/GCS,
+      alimentadas por Snowpipe a partir de arquivos Parquet/JSON.
+    database: "DEV_HYBRID_LH_BRONZE"
+    schema: RAW_VENDAS
+    tags: ["bronze", "raw"]
+    tables:
+      - name: pedidos_vendas
+        description: Pedidos de vendas extraídos do SAP SD/Oracle OMS.
+        columns:
+          - name: raw
+            description: Variante (VARIANT) com payload original semi-estruturado.
+            tests:
+              - not_null
+          - name: metadata_file_name
+            description: Nome do arquivo de origem no object storage.
+            tests:
+              - not_null
+          - name: load_timestamp
+            description: Momento em que o Snowpipe carregou o registro.
+            tests:
+              - not_null
+
+      - name: estoque_movimentos
+        description: Movimentações de estoque (SAP MM / WMS).
+        columns:
+          - name: raw
+            tests: [not_null]
+          - name: metadata_file_name
+            tests: [not_null]
+          - name: load_timestamp
+            tests: [not_null]
+
+      - name: fiscal_notas
+        description: Documentos fiscais (NF-e) emitidos e recebidos.
+        columns:
+          - name: raw
+            tests: [not_null]
+          - name: metadata_file_name
+            tests: [not_null]
+          - name: load_timestamp
+            tests: [not_null]

@@ -1,0 +1,64 @@
+name: 'hybrid_medallion_lakehouse'
+version: '0.1.0'
+config-version: 2
+
+# Profile selected via CLI flag --target
+profile: 'hybrid_medallion_lakehouse'
+
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+target-path: "target"
+clean-targets:
+  - "target"
+  - "dbt_packages"
+  - "logs"
+
+# Materialization defaults per layer
+models:
+  hybrid_medallion_lakehouse:
+    bronze:
+      +materialized: view
+      +schema: raw
+      +tags: ["bronze", "raw"]
+      +persist_docs:
+        relation: true
+        columns: true
+    silver:
+      +materialized: incremental
+      +incremental_strategy: merge
+      +on_schema_change: append_new_columns
+      +tags: ["silver", "conformed"]
+      +persist_docs:
+        relation: true
+        columns: true
+    gold:
+      +materialized: table
+      +tags: ["gold", "business"]
+      +persist_docs:
+        relation: true
+        columns: true
+
+vars:
+  # Environment injected by target (dev/stg/prd)
+  environment: "{{ env_var('DBT_ENV', 'dev') }}"
+  # LGPD data classification default
+  default_classification: "interno"
+  # Retention days by layer
+  bronze_retention_days: 1
+  silver_retention_days: 7
+  gold_retention_days: 90
+
+seeds:
+  hybrid_medallion_lakehouse:
+    +schema: seeds
+    +tags: ["seed"]
+
+tests:
+  hybrid_medallion_lakehouse:
+    +store_failures: true
+    +severity: warn

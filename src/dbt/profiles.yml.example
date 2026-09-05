@@ -1,0 +1,44 @@
+hybrid_medallion_lakehouse:
+  target: "{{ env_var('DBT_TARGET', 'dev') }}"
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      authenticator: externalbrowser
+      role: "DEV_HYBRID_LH_TRANSFORM_ROLE"
+      database: "DEV_HYBRID_LH_SILVER"
+      warehouse: "DEV_HYBRID_LH_TRANSFORM_WH"
+      schema: staging
+      threads: 4
+      tags:
+        environment: dev
+        layer: transform
+
+    stg:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      authenticator: externalbrowser
+      role: "STG_HYBRID_LH_TRANSFORM_ROLE"
+      database: "STG_HYBRID_LH_SILVER"
+      warehouse: "STG_HYBRID_LH_TRANSFORM_WH"
+      schema: staging
+      threads: 8
+      tags:
+        environment: stg
+        layer: transform
+
+    prd:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      authenticator: externalbrowser
+      role: "PRD_HYBRID_LH_TRANSFORM_ROLE"
+      database: "PRD_HYBRID_LH_SILVER"
+      warehouse: "PRD_HYBRID_LH_TRANSFORM_WH"
+      schema: staging
+      threads: 16
+      tags:
+        environment: prd
+        layer: transform

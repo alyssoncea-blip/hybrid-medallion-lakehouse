@@ -1,0 +1,43 @@
+version: 2
+
+models:
+  - name: slv_vendas__pedidos
+    description: >
+      Pedidos de venda deduplicados, com SCD2 e chaves surrogadas.
+      Camada Silver — fonte da verdade para o domínio de Vendas.
+    columns:
+      - name: pedido_sk
+        description: Surrogate key (hash determinístico) do pedido.
+        tests:
+          - not_null
+          - unique
+      - name: pedido_id
+        description: ID natural do pedido vindo da fonte.
+        tests:
+          - not_null
+      - name: cliente_sk
+        description: SK do cliente (FK para slv_cliente__cadastro).
+        tests:
+          - not_null
+      - name: data_pedido
+        tests:
+          - not_null
+      - name: valor_total
+        tests:
+          - not_null
+      - name: status
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['ABERTO', 'PAGO', 'FATURADO', 'CANCELADO', 'DEVOLVIDO']
+      - name: _dbt_valid_from
+        description: Início da validade do registro (SCD2).
+        tests:
+          - not_null
+      - name: _dbt_valid_to
+        description: Fim da validade do registro (SCD2). NULL = ativo.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - pedido_sk
+            - _dbt_valid_from

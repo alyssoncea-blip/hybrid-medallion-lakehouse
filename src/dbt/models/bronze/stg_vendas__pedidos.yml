@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: stg_vendas__pedidos
+    description: >
+      Pedidos de venda oriundos do SAP SD/Oracle OMS, ingeridos via Snowpipe
+      para a camada Bronze e materializados aqui como view no schema raw.
+    columns:
+      - name: pedido_id
+        description: Identificador único do pedido (PK).
+        tests:
+          - not_null
+          - unique
+      - name: cliente_id
+        description: FK para a dimensão de cliente.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_cliente__cadastro')
+              field: cliente_id
+      - name: data_pedido
+        description: Data de criação do pedido.
+        tests:
+          - not_null
+      - name: valor_total
+        description: Valor total do pedido em BRL.
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 10000000
+              strictly: false
+      - name: status
+        description: Status do pedido no fluxo de vendas.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['ABERTO', 'PAGO', 'FATURADO', 'CANCELADO', 'DEVOLVIDO']
+      - name: _ingested_at
+        description: Timestamp de ingestão no Bronze.
+        tests:
+          - not_null
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns:
+            - pedido_id
+            - data_pedido

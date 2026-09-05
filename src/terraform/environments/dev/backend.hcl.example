@@ -1,0 +1,5 @@
+bucket         = "hybrid-lakehouse-dev-tfstate"
+key            = "env/dev/terraform.tfstate"
+region         = "sa-east-1"
+dynamodb_table = "hybrid-lakehouse-dev-tfstate-lock"
+encrypt        = true

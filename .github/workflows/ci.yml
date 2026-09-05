@@ -9,6 +9,7 @@ on:
     branches:
       - main
       - develop
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -22,5 +23,153 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
+          cache: npm
       - run: npm ci --no-audit --no-fund
       - run: npm run lint:md
+
+  mermaid-render:
+    name: Mermaid Diagram Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run render:mermaid
+
+  structure-validate:
+    name: Repo Structure Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python scripts/validate_structure.py
+
+  terraform:
+    name: "Terraform (${{ matrix.env }})"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        env:
+          - local
+          - dev
+          - stg
+          - prd
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.0"
+      - name: Setup tfvars
+        run: |
+          cp "src/terraform/environments/${{ matrix.env }}/terraform.tfvars.example" \
+             "src/terraform/environments/${{ matrix.env }}/terraform.auto.tfvars"
+          if [ -f "src/terraform/environments/${{ matrix.env }}/backend.hcl.example" ]; then
+            cp "src/terraform/environments/${{ matrix.env }}/backend.hcl.example" \
+               "src/terraform/environments/${{ matrix.env }}/backend.hcl"
+          fi
+      - name: terraform fmt
+        run: terraform fmt -check -recursive src/terraform
+      - name: terraform init
+        run: |
+          cd "src/terraform/environments/${{ matrix.env }}"
+          terraform init -backend=false -input=false -no-color
+      - name: terraform validate
+        run: |
+          cd "src/terraform/environments/${{ matrix.env }}"
+          terraform validate -no-color
+
+  terraform-test:
+    name: Terraform Tests (modules)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.0"
+      - name: Test Snowflake module
+        run: |
+          cd src/terraform/modules/snowflake
+          terraform init -no-color
+          terraform test -no-color
+      - name: Test S3 module
+        run: |
+          cd src/terraform/modules/s3
+          terraform init -no-color
+          terraform test -no-color
+
+  dbt-build-local:
+    name: "dbt build (local / DuckDB)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dbt + DuckDB + pyarrow
+        run: |
+          python -m pip install --upgrade pip
+          pip install "dbt-core~=1.11.0" "dbt-duckdb>=1.9.0,<2.0.0" "pyarrow>=15.0.0"
+      - name: Generate Bronze fixtures
+        run: python scripts/generate_bronze.py --rows-pedidos 2000 --rows-clientes 500
+      - name: Setup dbt profile
+        run: |
+          mkdir -p ~/.dbt
+          cp src/dbt/profiles.yml.example ~/.dbt/profiles.yml
+      - name: dbt deps
+        run: cd src/dbt && dbt deps --no-version-check
+      - name: dbt build (local)
+        run: cd src/dbt && dbt build --target local --no-version-check
+        env:
+          DBT_DUCKDB_PATH: /tmp/lakehouse.duckdb
+      - name: Upload DuckDB artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lakehouse-duckdb
+          path: /tmp/lakehouse.duckdb
+          retention-days: 7
+          if-no-files-found: ignore
+
+  python-lint:
+    name: Python Lint (ruff + mypy)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install ruff mypy
+      - run: ruff check src/dbt scripts
+      - run: mypy --ignore-missing-imports src/dbt
+
+  all-checks-passed:
+    name: All Checks Passed
+    runs-on: ubuntu-latest
+    needs:
+      - markdown-lint
+      - mermaid-render
+      - structure-validate
+      - terraform
+      - terraform-test
+      - dbt-build-local
+      - python-lint
+    if: always()
+    steps:
+      - name: Fail if any required check failed
+        run: |
+          for check in "markdown-lint" "mermaid-render" "structure-validate" "terraform" "terraform-test" "dbt-build-local" "python-lint"; do
+            result="${{ needs[check].result }}"
+            echo "Check $check: $result"
+            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
+              echo "FAIL: $check did not pass (result=$result)"
+              exit 1
+            fi
+          done
+          echo "All required checks passed."

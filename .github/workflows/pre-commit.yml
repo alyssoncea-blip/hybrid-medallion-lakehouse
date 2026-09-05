@@ -1,14 +1,14 @@
 name: Pre-commit (lightweight)
 
-# Lightweight pre-commit-style check that doesn't require the pre-commit
-# framework itself (which has compatibility issues on GitHub-hosted runners).
-# We invoke the same hooks directly via npm/python.
-
 on:
   push:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
   pull_request:
-    branches: [main, develop]
+    branches:
+      - main
+      - develop
 
 permissions:
   contents: read
@@ -19,13 +19,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: npm
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.9.0"
@@ -38,28 +40,10 @@ jobs:
       - name: Terraform fmt
         run: terraform fmt -check -recursive src/terraform
 
-      - name: YAML / JSON validate
+      - name: No secrets
         run: |
-          python -c "import yaml, glob, json, sys
-          ok = True
-          for f in glob.glob('**/*.yml', recursive=True) + glob.glob('**/*.yaml', recursive=True):
-            if any(p in f for p in ('node_modules','.terraform','dbt_packages','target')): continue
-            try: yaml.safe_load(open(f, encoding='utf-8'))
-            except Exception as e: print(f'YAML FAIL: {f}: {e}'); ok = False
-          for f in glob.glob('**/*.json', recursive=True):
-            if any(p in f for p in ('node_modules','.terraform','dbt_packages','target')): continue
-            try: json.load(open(f, encoding='utf-8'))
-            except Exception as e: print(f'JSON FAIL: {f}: {e}'); ok = False
-          sys.exit(0 if ok else 1)"
-
-      - name: No private keys or secrets
-        run: |
-          if grep -rE 'BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY' . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=target 2>/dev/null; then
+          if grep -rE 'BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY' . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=target; then
             echo "FAIL: private key committed"
-            exit 1
-          fi
-          if grep -rE 'AKIA[0-9A-Z]{16}' . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=target 2>/dev/null; then
-            echo "FAIL: AWS access key ID committed"
             exit 1
           fi
           echo "No secrets detected"

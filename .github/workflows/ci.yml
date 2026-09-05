@@ -1,4 +1,4 @@
-﻿name: CI
+name: CI
 
 on:
   push:
@@ -122,7 +122,7 @@ jobs:
           terraform test -no-color
 
   # ===========================================================================
-  # 6. dbt build (LOCAL target — DuckDB, R$ 0, runs by default)
+  # 6. dbt build (LOCAL target â€” DuckDB, R$ 0, runs by default)
   # ===========================================================================
   dbt-build-local:
     name: dbt build (local / DuckDB - free)
@@ -163,7 +163,7 @@ jobs:
           if-no-files-found: ignore
 
   # ===========================================================================
-  # 7. dbt build (Snowflake — only when secrets are configured)
+  # 7. dbt build (Snowflake â€” only when secrets are configured)
   # ===========================================================================
   dbt-build-snowflake:
     name: dbt build (Snowflake)

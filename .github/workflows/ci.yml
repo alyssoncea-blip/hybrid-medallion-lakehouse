@@ -32,11 +32,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Debug environment
+        run: |
+          pwd
+          ls -la
+          ls -la scripts/
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: npm
       - run: npm ci --no-audit --no-fund
+      - name: Debug node/npm
+        run: |
+          node --version
+          npm --version
+          npx --version
       - run: npm run render:mermaid
 
   structure-validate:
@@ -142,6 +152,12 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+      - name: Debug environment
+        run: |
+          pwd
+          ls -la
+          ls -la src/dbt/
+          ls -la scripts/
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"

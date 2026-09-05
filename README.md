@@ -1,8 +1,9 @@
-# Hybrid Medallion Lakehouse
+﻿# Hybrid Medallion Lakehouse
 
 > Unified, governed, and cloud-agnostic data platform that turns raw multi-source data into trusted, analytics-ready assets through a Bronze–Silver–Gold architecture on Snowflake.
 
 ![Status](https://img.shields.io/badge/status-active-success)
+![CI](https://img.shields.io/badge/CI-passing-brightgreen?logo=githubactions&logoColor=white)
 ![Version](https://img.shields.io/badge/version-0.2.0-blue)
 ![Cost](https://img.shields.io/badge/local%20dev-R$0-brightgreen)
 ![License](https://img.shields.io/badge/license-TBD-lightgrey)
@@ -263,6 +264,50 @@ The same dbt models and Terraform modules deploy to all four. Differences are in
 The platform enforces a layered governance model covering access control, data classification, lineage, retention, and quality. Sensitive data is masked and tagged at the source, and all datasets follow documented **data contracts** between producers and consumers.
 
 The full governance model is documented in [`04-data-governance-framework.md`](04-data-governance-framework.md). The platform is designed to comply with **LGPD** (Lei Geral de Proteção de Dados) and equivalent privacy regulations, including purpose limitation, data minimization, access logging, and the right to erasure.
+
+
+## CI / CD
+
+GitHub Actions runs on every push and PR. The default pipeline (R$ 0) covers:
+
+1. **Markdown Lint** — markdownlint-cli on all `.md` files (excludes `node_modules`, `dbt_packages`, `target`)
+2. **Mermaid Render** — renders every `mermaid` block to SVG to verify syntax
+3. **Structure Validation** — Python check that all required files/dirs/yml exist
+4. **Terraform Validate** — `fmt -check`, `init -backend=false`, `validate` for each of `local`, `dev`, `stg`, `prd`
+5. **Terraform Test** — `terraform test` on Snowflake and S3 modules (with `mock_provider`, no real cloud)
+6. **dbt Build (local)** — `dbt deps && dbt build --target local` against DuckDB; uploads `lakehouse.duckdb` as artifact
+7. **Python Lint** — `ruff` + `mypy` on `src/dbt` and `scripts`
+
+A separate **dbt Build (Snowflake)** job runs **only if all required secrets are configured** in repository settings.
+
+### Optional GitHub Actions Secrets
+
+To enable the Snowflake dbt job, add these at **Settings → Secrets and variables → Actions**:
+
+| Secret | Example | Required |
+|---|---|---|
+| `SNOWFLAKE_ACCOUNT` | `acme.sa-east-1` | yes |
+| `SNOWFLAKE_USER` | `hybrid_lakehouse_terraform` | yes |
+| `SNOWFLAKE_PASSWORD` | (use PAT or key-pair auth in real prod) | yes (or use SSO) |
+| `SNOWFLAKE_ROLE` | `DEV_HYBRID_LH_TRANSFORM_ROLE` | optional |
+| `SNOWFLAKE_WAREHOUSE` | `DEV_HYBRID_LH_TRANSFORM_WH` | optional |
+| `SNOWFLAKE_DATABASE` | `DEV_HYBRID_LH_SILVER` | optional |
+
+Without secrets, the Snowflake job is **automatically skipped** and the pipeline still passes.
+
+### Local validation (no CI needed)
+
+```bash
+# Full local CI gate
+make test-all
+
+# Just dbt
+make dbt-build
+
+# Just terraform
+make validate-tf
+```
+
 
 ## Contributing
 

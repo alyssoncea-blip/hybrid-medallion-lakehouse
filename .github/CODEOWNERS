@@ -1,0 +1,23 @@
+# Default code owners
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Global default: Tech Lead owns everything unless overridden below
+*                    @alyssoncea-blip
+
+# Documentation requires sign-off from a domain expert
+/01-project-charter.md                       @alyssoncea-blip
+/02-architecture-design.md                   @alyssoncea-blip
+/03-implementation-roadmap.md                 @alyssoncea-blip
+/04-data-governance-framework.md             @alyssoncea-blip
+/05-risks-and-compliance.md                  @alyssoncea-blip
+/docs/                                       @alyssoncea-blip
+
+# Data governance changes (any change to dbt yml, governance policies)
+/src/dbt/models/**/models.yml                @alyssoncea-blip
+/src/dbt/models/**/_sources.yml              @alyssoncea-blip
+/src/dbt/seeds/                              @alyssoncea-blip
+
+# Infrastructure changes
+/src/terraform/                              @alyssoncea-blip
+/docker-compose.yml                          @alyssoncea-blip
+/.github/workflows/                          @alyssoncea-blip

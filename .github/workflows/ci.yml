@@ -5,17 +5,21 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
+  workflow_dispatch:
 
 permissions:
   contents: read
-  pull-requests: read
 
 env:
-  TF_VERSION: "1.7.0"
   PYTHON_VERSION: "3.11"
   NODE_VERSION: "20"
+  TF_VERSION: "1.7.0"
+  DBT_VERSION: "1.11.x"
 
 jobs:
+  # ===========================================================================
+  # 1. Markdown lint — fastest check, runs first
+  # ===========================================================================
   markdown-lint:
     name: Markdown Lint
     runs-on: ubuntu-latest
@@ -24,10 +28,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: npm
       - run: npm ci
       - run: npm run lint:md
-      - run: npm run lint:md -- --ignore src/dbt
 
+  # ===========================================================================
+  # 2. Mermaid diagram validation
+  # ===========================================================================
   mermaid-render:
     name: Mermaid Diagram Validation
     runs-on: ubuntu-latest
@@ -36,42 +43,159 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: npm
       - run: npm ci
       - run: npm run render:mermaid
 
-  terraform-validate:
-    name: Terraform Validate (${{ matrix.env }})
+  # ===========================================================================
+  # 3. Repository structure validation (Python, no external deps required)
+  # ===========================================================================
+  structure-validate:
+    name: Repo Structure Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Run structure validator
+        run: python scripts/validate_structure.py
+
+  # ===========================================================================
+  # 4. Terraform — format, validate, test (with mock providers)
+  # ===========================================================================
+  terraform:
+    name: Terraform (${{ matrix.env }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        env: [dev, stg, prd]
+        env: [local, dev, stg, prd]
     steps:
       - uses: actions/checkout@v4
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
-      - name: Setup env
+
+      - name: Setup tfvars
         run: |
           cp src/terraform/environments/${{ matrix.env }}/terraform.tfvars.example \
              src/terraform/environments/${{ matrix.env }}/terraform.auto.tfvars
-          cp src/terraform/environments/${{ matrix.env }}/backend.hcl.example \
-             src/terraform/environments/${{ matrix.env }}/backend.hcl
+          if [ -f "src/terraform/environments/${{ matrix.env }}/backend.hcl.example" ]; then
+            cp src/terraform/environments/${{ matrix.env }}/backend.hcl.example \
+               src/terraform/environments/${{ matrix.env }}/backend.hcl
+          fi
+
       - name: terraform fmt
         run: terraform fmt -check -recursive src/terraform
+
       - name: terraform init
         run: |
           cd src/terraform/environments/${{ matrix.env }}
-          terraform init -backend=false -input=false
+          terraform init -backend=false -input=false -no-color
+
       - name: terraform validate
         run: |
           cd src/terraform/environments/${{ matrix.env }}
-          terraform validate
-      - name: terraform test
-        run: |
-          cd src/terraform/environments/${{ matrix.env }}
-          terraform test -verbose
+          terraform validate -no-color
 
+  terraform-test:
+    name: Terraform Tests (modules)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+      - name: Test Snowflake module
+        run: |
+          cd src/terraform/modules/snowflake
+          terraform init -no-color
+          terraform test -no-color
+      - name: Test S3 module
+        run: |
+          cd src/terraform/modules/s3
+          terraform init -no-color
+          terraform test -no-color
+
+  # ===========================================================================
+  # 5. dbt build (LOCAL target — DuckDB, R$ 0, runs by default)
+  # ===========================================================================
+  dbt-build-local:
+    name: dbt build (local / DuckDB — free)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install dbt + DuckDB + pyarrow
+        run: |
+          python -m pip install --upgrade pip
+          pip install "dbt-core~=1.11.0" "dbt-duckdb>=1.9.0" pyarrow
+
+      - name: Generate Bronze fixtures
+        run: python scripts/generate_bronze.py --rows-pedidos 2000 --rows-clientes 500
+
+      - name: Setup dbt profile
+        run: |
+          mkdir -p ~/.dbt
+          cp src/dbt/profiles.yml.example ~/.dbt/profiles.yml
+
+      - name: dbt deps
+        run: cd src/dbt && dbt deps
+
+      - name: dbt build (local)
+        run: cd src/dbt && dbt build --target local
+        env:
+          DBT_DUCKDB_PATH: /tmp/lakehouse.duckdb
+
+      - name: Upload DuckDB artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lakehouse-duckdb
+          path: /tmp/lakehouse.duckdb
+          retention-days: 7
+
+  # ===========================================================================
+  # 6. dbt build (SNOWFLAKE — only when secrets are configured)
+  # ===========================================================================
+  dbt-build-snowflake:
+    name: dbt build (Snowflake — requires secrets)
+    runs-on: ubuntu-latest
+    # Skip if any of the required secrets is missing
+    if: ${{ allSecrets.SNOWFLAKE_ACCOUNT && allSecrets.SNOWFLAKE_USER && allSecrets.SNOWFLAKE_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install dbt-snowflake
+        run: pip install "dbt-core~=1.11.0" "dbt-snowflake~=1.9.0"
+
+      - name: Setup dbt profile
+        run: |
+          mkdir -p ~/.dbt
+          cp src/dbt/profiles.yml.example ~/.dbt/profiles.yml
+
+      - name: dbt build (dev target)
+        run: |
+          cd src/dbt
+          dbt deps
+          dbt build --target dev
+        env:
+          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+          SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+          SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+          SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+
+  # ===========================================================================
+  # 7. Python lint
+  # ===========================================================================
   python-lint:
     name: Python Lint (ruff + mypy)
     runs-on: ubuntu-latest
@@ -81,48 +205,33 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - run: pip install ruff mypy
-      - run: ruff check src/dbt src/snowpark scripts 2>/dev/null || true
-      - run: mypy --ignore-missing-imports src/dbt 2>/dev/null || true
+      - run: ruff check src/dbt src/snowpark scripts || true
+      - run: mypy --ignore-missing-imports src/dbt || true
 
-  dbt-build:
-    name: dbt build (dev)
-    runs-on: ubuntu-latest
-    # dbt build requires live Snowflake credentials, so it is non-blocking by default.
-    # Set secrets SNOWFLAKE_ACCOUNT / SNOWFLAKE_USER and remove `continue-on-error`
-    # to enforce this check.
-    continue-on-error: true
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-      - name: Install dbt-snowflake
-        run: pip install dbt-snowflake==1.7.*
-      - name: Setup profile
-        env:
-          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
-        run: |
-          mkdir -p ~/.dbt
-          cp src/dbt/profiles.yml.example ~/.dbt/profiles.yml
-      - name: dbt deps
-        run: cd src/dbt && dbt deps
-      - name: dbt build
-        run: cd src/dbt && dbt build --target dev
-
+  # ===========================================================================
+  # 8. All checks passed (gate)
+  # ===========================================================================
   all-checks-passed:
     name: All Checks Passed
     runs-on: ubuntu-latest
-    needs: [markdown-lint, mermaid-render, terraform-validate, python-lint]
+    needs:
+      - markdown-lint
+      - mermaid-render
+      - structure-validate
+      - terraform
+      - terraform-test
+      - dbt-build-local
+      - python-lint
     if: always()
     steps:
-      - name: Fail if any check failed
+      - name: Fail if any required check failed
         run: |
-          if [ "${{ needs.markdown-lint.result }}" != "success" ] || \
-             [ "${{ needs.mermaid-render.result }}" != "success" ] || \
-             [ "${{ needs.terraform-validate.result }}" != "success" ] || \
-             [ "${{ needs.python-lint.result }}" != "success" ]; then
-            echo "One or more required checks failed."
-            exit 1
-          fi
+          for check in "markdown-lint" "mermaid-render" "structure-validate" "terraform" "terraform-test" "dbt-build-local" "python-lint"; do
+            result="${{ needs[check].result }}"
+            echo "Check $check: $result"
+            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
+              echo "FAIL: $check did not pass (result=$result)"
+              exit 1
+            fi
+          done
           echo "All required checks passed."

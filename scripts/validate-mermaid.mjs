@@ -56,7 +56,7 @@ async function main() {
       const out = `${tmp}.svg`;
       await fs.writeFile(tmp, block, "utf8");
       try {
-        await exec("npx", ["-y", "-p", "@mermaid-js/mermaid-cli", "mmdc", "-i", tmp, "-o", out, "-q"], { shell: true });
+        await exec("npx", ["mmdc", "-i", tmp, "-o", out, "-q"], { shell: true });
         console.log(`  OK  ${path.relative(root, file)} [block ${i + 1}]`);
       } catch (err) {
         failed++;

@@ -16,8 +16,8 @@
     "setup": "npm install"
   },
   "devDependencies": {
-    "markdownlint-cli": "^0.41.0",
     "@mermaid-js/mermaid-cli": "^10.9.1",
-    "cspell": "^8.8.4"
+    "cspell": "^8.8.4",
+    "markdownlint-cli": "^0.41.0"
   }
 }

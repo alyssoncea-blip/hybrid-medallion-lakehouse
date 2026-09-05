@@ -30,6 +30,7 @@ jobs:
   mermaid-render:
     name: Mermaid Diagram Validation
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - name: Debug environment

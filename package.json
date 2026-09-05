@@ -1,0 +1,23 @@
+{
+  "name": "hybrid-medallion-lakehouse",
+  "version": "0.1.0",
+  "description": "Hybrid Medallion Lakehouse — Snowflake + S3/GCS + dbt + Snowpark",
+  "private": true,
+  "scripts": {
+    "lint:md": "markdownlint \"**/*.md\" --ignore node_modules --ignore dbt_packages --ignore target",
+    "lint:md:fix": "markdownlint \"**/*.md\" --fix --ignore node_modules --ignore dbt_packages --ignore target",
+    "lint:tf": "terraform fmt -check -recursive src/terraform",
+    "lint:tf:fix": "terraform fmt -recursive src/terraform",
+    "validate:tf": "for /R src/terraform/environments %G in (.) do @if exist \"%G\\main.tf\" (cd %G && terraform init -backend=false && terraform validate)",
+    "render:mermaid": "node scripts/validate-mermaid.mjs",
+    "spell": "cspell \"**/*.md\"",
+    "test": "npm run lint:md && npm run lint:tf",
+    "test:all": "npm run lint:md && npm run lint:tf && npm run render:mermaid",
+    "setup": "npm install"
+  },
+  "devDependencies": {
+    "markdownlint-cli": "^0.41.0",
+    "@mermaid-js/mermaid-cli": "^10.9.1",
+    "cspell": "^8.8.4"
+  }
+}

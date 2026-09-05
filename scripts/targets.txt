@@ -1,0 +1,17 @@
+help                    Show this help.
+setup                   Install all dev tooling.
+lint                    Run all linters.
+lint-md                 Lint Markdown files.
+lint-md-fix             Lint and auto-fix Markdown.
+lint-tf                 Check Terraform formatting.
+lint-tf-fix             Auto-format Terraform.
+validate                Run all validators.
+validate-tf             terraform validate on dev/stg/prd.
+validate-mermaid        Render Mermaid diagrams to verify syntax.
+test                    Fast tests (docs + terraform).
+test-all                Full local CI gate.
+dbt-deps                Install dbt packages.
+dbt-build               dbt build on dev target.
+dbt-test                dbt test only.
+pre-commit              Run pre-commit on all files.
+clean                   Remove generated artifacts.

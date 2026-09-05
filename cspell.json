@@ -1,0 +1,16 @@
+target-version=1.7.0
+exclude=
+  node_modules
+  target
+  dbt_packages
+  .terraform
+  .git
+  logs
+ignore-words=
+  autoglass
+  snowflake
+  dbt
+  terraform
+  medallion
+  snowpark
+  github

@@ -6,12 +6,14 @@ These UDFs can be registered in Snowflake and used in SQL queries.
 
 from snowflake.snowpark import Session
 from snowflake.snowpark.functions import udf
-from snowflake.snowpark.types import StringType, DoubleType, IntegerType, BooleanType
+from snowflake.snowpark.types import StringType, DoubleType, IntegerType
 import re
 
 
+from typing import Optional
+
 # ─── Price bucket UDF ───
-def price_bucket_udf(price: float) -> str:
+def price_bucket_udf(price: Optional[float]) -> str:
     """Categorize price into buckets."""
     if price is None:
         return "UNKNOWN"
@@ -43,7 +45,7 @@ def category_flag_udf(category: str, target_category: str) -> int:
 
 
 # ─── SKU numeric suffix extractor ───
-def sku_numeric_suffix_udf(sku: str) -> int:
+def sku_numeric_suffix_udf(sku: str) -> int | None:
     """Extract numeric suffix from SKU if present."""
     if not sku:
         return None

@@ -26,12 +26,12 @@ from typing import Optional
 
 from snowflake.snowpark import Session
 from snowflake.snowpark.functions import (
-    col, when, lit, floor, ceil, round as sp_round,
-    concat, substring, upper, lower, trim,
-    min as sp_min, max as sp_max, avg as sp_avg, count as sp_count
+    col, when, lit, round as sp_round,
+    trim,
+    min as sp_min, max as sp_max, avg as sp_avg
 )
 from snowflake.snowpark.types import (
-    StructType, StructField, StringType, IntegerType, DoubleType, BooleanType
+    IntegerType
 )
 
 
@@ -157,12 +157,8 @@ def write_gold_features(session: Session, df, schema: str = "GOLD", table: str =
         )
     """).collect()
     
-    # Merge (upsert) - using merge for idempotent writes
-    source = df
-    target = session.table(f"{schema}.{table}")
-    
     # For demo: overwrite (in production use merge)
-    source.write.mode("overwrite").save_as_table(f"{schema}.{table}")
+    df.write.mode("overwrite").save_as_table(f"{schema}.{table}")
     print(f"✓ Written {df.count()} rows to {schema}.{table}")
 
 

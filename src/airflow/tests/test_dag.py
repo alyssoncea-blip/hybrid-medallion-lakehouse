@@ -13,7 +13,7 @@ import pytest
 
 # Skip tests if airflow not installed (local dev environment)
 try:
-    from airflow import DAG
+    import airflow  # noqa: F401
 except ImportError:
     pytest.skip("Airflow not installed - run tests inside Airflow container", allow_module_level=True)
 

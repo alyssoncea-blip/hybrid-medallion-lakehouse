@@ -1,0 +1,98 @@
+version: "3.8"
+
+services:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # PostgreSQL — Airflow metadata database
+  # ─────────────────────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: airflow-postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - airflow-network
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Redis — Celery broker / result backend
+  # ─────────────────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: airflow-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - airflow-network
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Airflow Webserver + Scheduler (standalone executor for simplicity)
+  # ─────────────────────────────────────────────────────────────────────────────
+  airflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    container_name: airflow-webserver
+    environment:
+      # Core Airflow config
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: "UTC"
+      # Database
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      # Broker
+      AIRFLOW__CELERY__BROKER_URL: redis://redis:6379/0
+      AIRFLOW__CELERY__RESULT_BACKEND: redis://redis:6379/0
+      # Webserver
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "true"
+      AIRFLOW__WEBSERVER__SECRET_KEY: "change-me-in-production"
+      # Logging
+      AIRFLOW__LOGGING__LOGGING_LEVEL: INFO
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount repo for dbt project + profiles
+      - ./src/dbt:/opt/airflow/dbt:ro
+      - ./src/airflow/dags:/opt/airflow/dags:ro
+      - ./src/airflow/config:/opt/airflow/config:ro
+      - ./src/airflow/plugins:/opt/airflow/plugins:ro
+      # Data directory for DuckDB
+      - ./data:/opt/airflow/data
+      # Airflow logs
+      - airflow-logs:/opt/airflow/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - airflow-network
+    command: >
+      bash -c "
+        airflow db migrate &&
+        airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com &&
+        exec airflow standalone
+      "
+
+networks:
+  airflow-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
+  airflow-logs:

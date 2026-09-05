@@ -1,0 +1,29 @@
+# Dockerfile for Airflow with dbt dependencies
+# Usage: docker compose -f docker-compose.airflow.yml build
+
+FROM apache/airflow:2.9.3-python3.11
+
+USER root
+
+# Install system dependencies for dbt-snowflake, dbt-duckdb, pyarrow
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+USER airflow
+
+# Install Python dependencies
+COPY src/airflow/requirements.txt /requirements.txt
+RUN pip install --no-cache-dir -r /requirements.txt
+
+# Ensure dbt profile directory exists
+RUN mkdir -p /opt/airflow/.dbt /opt/airflow/data
+
+# Copy dbt profiles template (will be copied at runtime via volume mount)
+# COPY src/dbt/profiles.yml.example /opt/airflow/.dbt/profiles.yml
+
+# Airflow entrypoint
+ENTRYPOINT ["/entrypoint"]
+CMD ["standalone"]

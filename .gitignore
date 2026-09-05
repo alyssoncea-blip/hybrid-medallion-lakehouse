@@ -98,3 +98,12 @@ artifacts/
 tmp/
 temp/
 *.tmp
+
+# Airflow
+src/airflow/__pycache__/
+src/airflow/dags/__pycache__/
+src/airflow/plugins/__pycache__/
+src/airflow/config/__pycache__/
+src/airflow/tests/__pycache__/
+src/airflow/.dbt/profiles.yml
+airflow-logs/

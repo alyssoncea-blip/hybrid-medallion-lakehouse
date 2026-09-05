@@ -48,13 +48,13 @@ variable "environment" {
 
 variable "force_destroy" {
   type    = bool
-  default = true   # local: permitir destroy com objetos
+  default = true # local: permitir destroy com objetos
 }
 
 module "s3" {
   source = "../../modules/s3"
 
-  environment = var.environment
+  environment   = var.environment
   force_destroy = var.force_destroy
   # local: desabilitar lifecycle (LocalStack tem limitações em lifecycle rules)
   bronze_lifecycle_transition_days = 365

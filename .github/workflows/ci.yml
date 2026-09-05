@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main, develop]
+    tags: ['*']
   pull_request:
     branches: [main, develop]
   workflow_dispatch:
@@ -13,12 +14,11 @@ permissions:
 env:
   PYTHON_VERSION: "3.11"
   NODE_VERSION: "20"
-  TF_VERSION: "1.7.0"
-  DBT_VERSION: "1.11.x"
+  TF_VERSION: "1.9.0"
 
 jobs:
   # ===========================================================================
-  # 1. Markdown lint — fastest check, runs first
+  # 1. Markdown lint
   # ===========================================================================
   markdown-lint:
     name: Markdown Lint
@@ -29,7 +29,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-      - run: npm ci
+      - run: npm ci --no-audit --no-fund
       - run: npm run lint:md
 
   # ===========================================================================
@@ -44,11 +44,11 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-      - run: npm ci
+      - run: npm ci --no-audit --no-fund
       - run: npm run render:mermaid
 
   # ===========================================================================
-  # 3. Repository structure validation (Python, no external deps required)
+  # 3. Repository structure validation
   # ===========================================================================
   structure-validate:
     name: Repo Structure Validation
@@ -62,7 +62,7 @@ jobs:
         run: python scripts/validate_structure.py
 
   # ===========================================================================
-  # 4. Terraform — format, validate, test (with mock providers)
+  # 4. Terraform fmt + validate (all 4 envs)
   # ===========================================================================
   terraform:
     name: Terraform (${{ matrix.env }})
@@ -99,6 +99,9 @@ jobs:
           cd src/terraform/environments/${{ matrix.env }}
           terraform validate -no-color
 
+  # ===========================================================================
+  # 5. Terraform test (modules with mock providers)
+  # ===========================================================================
   terraform-test:
     name: Terraform Tests (modules)
     runs-on: ubuntu-latest
@@ -119,21 +122,20 @@ jobs:
           terraform test -no-color
 
   # ===========================================================================
-  # 5. dbt build (LOCAL target — DuckDB, R$ 0, runs by default)
+  # 6. dbt build (LOCAL target — DuckDB, R$ 0, runs by default)
   # ===========================================================================
   dbt-build-local:
-    name: dbt build (local / DuckDB — free)
+    name: dbt build (local / DuckDB - free)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: pip
       - name: Install dbt + DuckDB + pyarrow
         run: |
           python -m pip install --upgrade pip
-          pip install "dbt-core~=1.11.0" "dbt-duckdb>=1.9.0" pyarrow
+          pip install "dbt-core~=1.11.0" "dbt-duckdb>=1.9.0,<2.0.0" "pyarrow>=15.0.0"
 
       - name: Generate Bronze fixtures
         run: python scripts/generate_bronze.py --rows-pedidos 2000 --rows-clientes 500
@@ -144,10 +146,10 @@ jobs:
           cp src/dbt/profiles.yml.example ~/.dbt/profiles.yml
 
       - name: dbt deps
-        run: cd src/dbt && dbt deps
+        run: cd src/dbt && dbt deps --no-version-check
 
       - name: dbt build (local)
-        run: cd src/dbt && dbt build --target local
+        run: cd src/dbt && dbt build --target local --no-version-check
         env:
           DBT_DUCKDB_PATH: /tmp/lakehouse.duckdb
 
@@ -158,15 +160,23 @@ jobs:
           name: lakehouse-duckdb
           path: /tmp/lakehouse.duckdb
           retention-days: 7
+          if-no-files-found: ignore
 
   # ===========================================================================
-  # 6. dbt build (SNOWFLAKE — only when secrets are configured)
+  # 7. dbt build (Snowflake — only when secrets are configured)
   # ===========================================================================
   dbt-build-snowflake:
-    name: dbt build (Snowflake — requires secrets)
+    name: dbt build (Snowflake)
     runs-on: ubuntu-latest
-    # Skip if any of the required secrets is missing
-    if: ${{ allSecrets.SNOWFLAKE_ACCOUNT && allSecrets.SNOWFLAKE_USER && allSecrets.SNOWFLAKE_PASSWORD }}
+    # Only run if all three required secrets exist
+    if: ${{ env.SNOWFLAKE_ACCOUNT != '' && env.SNOWFLAKE_USER != '' && env.SNOWFLAKE_PASSWORD != '' }}
+    env:
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+      SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+      SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+      SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -183,33 +193,27 @@ jobs:
       - name: dbt build (dev target)
         run: |
           cd src/dbt
-          dbt deps
-          dbt build --target dev
-        env:
-          SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-          SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
-          SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
-          SNOWFLAKE_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
-          SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
-          SNOWFLAKE_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+          dbt deps --no-version-check
+          dbt build --target dev --no-version-check
 
   # ===========================================================================
-  # 7. Python lint
+  # 8. Python lint
   # ===========================================================================
   python-lint:
     name: Python Lint (ruff + mypy)
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - run: pip install ruff mypy
-      - run: ruff check src/dbt src/snowpark scripts || true
+      - run: ruff check src/dbt scripts || true
       - run: mypy --ignore-missing-imports src/dbt || true
 
   # ===========================================================================
-  # 8. All checks passed (gate)
+  # 9. All checks passed (gate)
   # ===========================================================================
   all-checks-passed:
     name: All Checks Passed

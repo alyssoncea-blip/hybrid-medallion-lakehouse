@@ -3,27 +3,135 @@
 > Unified, governed, and cloud-agnostic data platform that turns raw multi-source data into trusted, analytics-ready assets through a Bronze–Silver–Gold architecture on Snowflake.
 
 ![Status](https://img.shields.io/badge/status-active-success)
-![Version](https://img.shields.io/badge/version-0.1.0-blue)
+![Version](https://img.shields.io/badge/version-0.2.0-blue)
+![Cost](https://img.shields.io/badge/local%20dev-R$0-brightgreen)
 ![License](https://img.shields.io/badge/license-TBD-lightgrey)
 
 ## Table of Contents
 
 - [Overview](#overview)
+- [Cost-Conscious Architecture](#cost-conscious-architecture)
+- [Quick Start (Local — R$0)](#quick-start-local--r0)
 - [Architecture at a Glance](#architecture-at-a-glance)
 - [Tech Stack](#tech-stack)
 - [Repository Structure](#repository-structure)
-- [Quick Start](#quick-start)
+- [Environments](#environments)
 - [Documentation Index](#documentation-index)
 - [Governance & Compliance](#governance--compliance)
 - [Contributing](#contributing)
-- [Team & Contacts](#team--contacts)
-- [License](#license)
 
 ## Overview
 
 The **Hybrid Medallion Lakehouse** is a modern data platform designed to ingest, transform, and serve data at scale by combining the flexibility of a data lake with the performance and governance of a cloud data warehouse. Built around the **Medallion Architecture (Bronze → Silver → Gold)**, the platform progressively refines raw data into trusted, business-ready datasets, enabling analytics, ML, and operational reporting from a single source of truth.
 
 It is engineered to be **hybrid by design**: storage tiers span object storage (S3/GCS) and Snowflake-managed tables, while compute leverages Snowflake elastic engines, Snowpark for Python/Java workloads, and dbt for SQL transformations. This separation enables cost-efficient raw storage, reproducible transformations, and reliable serving of curated data to BI tools, APIs, and downstream consumers, all under a unified governance and observability framework.
+
+## Cost-Conscious Architecture
+
+The platform supports **two execution paths** so you can develop, validate and demo end-to-end **without paying for cloud**:
+
+| Layer | Local (R$ 0) | Cloud (paid) |
+|---|---|---|
+| Data warehouse | **DuckDB** (in-process, embedded) | Snowflake (dev/stg/prd) |
+| Object storage | **Parquet files** in `data/bronze/` | **S3 buckets** provisioned by Terraform |
+| S3 emulation | **None** (raw files on disk) | **LocalStack Community** (S3 + KMS + SQS) in Docker |
+| Terraform | `validate` + `test` only (no apply) | Full `apply` against AWS / GCP |
+| BI / Consumers | CSV export, DuckDB queries | Power BI, Tableau, Snowflake views |
+| Networking | none | PrivateLink, VPC peering, Direct Connect |
+
+**Cost reality**:
+
+- **Local dev**: R$ 0/month — works on any laptop with Python + dbt + DuckDB.
+- **Snowflake trial**: $400 credits for 30 days (requires credit card, no charge during trial).
+- **Production Snowflake**: minimum ~$500/month per active account + per-second warehouse billing.
+- **AWS/GCP**: standard rates apply (S3 ~$23/TB/mo, KMS ~$1/key/mo).
+
+The same dbt models, Terraform modules, and tests run on both paths. You develop locally, validate via CI, and deploy to cloud.
+
+## Quick Start (Local — R$0)
+
+### Prerequisites
+
+- **Python 3.10+** with `dbt-duckdb` and `pyarrow` (or Anaconda which already has them)
+- **dbt-core 1.11+** (`dbt --version` should show 1.11.x or higher)
+- **Git** (you're already using it)
+
+That's it. No Docker, no cloud credentials, no Snowflake account required.
+
+### 1. Clone and configure
+
+```bash
+# If you haven't already
+cd "D:\Projetos\Hybrid Medallion Lakehouse"
+cp .env.example .env   # optional, for documentation
+```
+
+### 2. Generate Bronze sample data
+
+```bash
+python scripts/generate_bronze.py --rows-pedidos 2000 --rows-clientes 500
+```
+
+This creates synthetic Parquet files in `data/bronze/pedidos_vendas/` and `data/bronze/clientes_cadastro/` (no PII — CPFs are syntactically valid but fake).
+
+### 3. Configure your dbt profile
+
+Copy `src/dbt/profiles.yml.example` to `~/.dbt/profiles.yml` (the default dbt location):
+
+```yaml
+hybrid_medallion_lakehouse:
+  target: local
+  outputs:
+    local:
+      type: duckdb
+      path: "C:/Users/alyss/data/lakehouse.duckdb"
+      threads: 4
+```
+
+Adjust the `path` to anywhere on your filesystem. The folder will be created on first run.
+
+### 4. Build the lakehouse end-to-end
+
+```bash
+cd src/dbt
+dbt deps     # install dbt packages
+dbt build    # run all models + tests
+```
+
+Expected output:
+
+```
+Done. PASS=49 WARN=1 ERROR=0 SKIP=0 NO-OP=0 TOTAL=50
+```
+
+The 1 WARN is `assert_revenue_not_negative` — expected with random synthetic data; flip to `severity: error` in production.
+
+### 5. Query the Gold layer directly
+
+```bash
+# From the dbt project
+dbt show --target local --inline "select * from main.gld_vendas__receita_mensal order by ano_mes desc, receita_liquida desc limit 10"
+```
+
+Or with the DuckDB CLI:
+
+```bash
+duckdb C:/Users/alyss/data/lakehouse.duckdb -c "select * from main.gld_vendas__receita_mensal order by receita_liquida desc limit 10"
+```
+
+### 6. (Optional) Bring up LocalStack for S3 emulation
+
+If you want to also exercise the Terraform S3 module locally:
+
+```bash
+docker compose up -d            # starts LocalStack with S3, KMS, SQS
+cd src/terraform/environments/local
+terraform init
+terraform plan                  # see what would be created
+terraform apply                 # creates 3 buckets + KMS key in LocalStack
+```
+
+Caveats: LocalStack Community doesn't support all AWS features (lifecycle rules are limited, KMS is simplified). Use it to validate **structure**, not behavior parity with production.
 
 ## Architecture at a Glance
 
@@ -61,8 +169,8 @@ flowchart LR
 
 | Layer            | Technology                                     | Purpose                                            |
 |------------------|------------------------------------------------|----------------------------------------------------|
-| Storage          | AWS S3 / GCS                                   | Raw landing zone and external tables               |
-| Warehouse        | Snowflake                                      | Compute, governance, Bronze/Silver/Gold tables     |
+| Storage          | AWS S3 / GCS (cloud) or Parquet (local)        | Raw landing zone and external tables               |
+| Warehouse        | Snowflake (cloud) or DuckDB (local)            | Compute, governance, Bronze/Silver/Gold tables     |
 | Transformation   | dbt Core / dbt Cloud                           | Versioned SQL models, tests, documentation          |
 | Custom Compute   | Snowpark (Python / Java / Scala)               | UDFs, stored procedures, complex ML workloads      |
 | Ingestion        | Snowpipe, Kafka Connect, API Connectors        | Streaming and batch data ingestion                 |
@@ -71,7 +179,7 @@ flowchart LR
 | Data Quality     | Great Expectations, dbt tests, Data Contracts  | Validation, anomaly detection, contract enforcement|
 | CI/CD            | GitHub Actions, Azure DevOps                   | Automated build, test, and deploy pipelines        |
 | Observability    | Grafana / Snowflake Account Usage, custom alerts | Monitoring, lineage, cost and freshness tracking   |
-| Governance       | Snowflake Horizon Catalog + Collibra/Atlan, data contracts | Access control, lineage, PII and LGPD compliance   |
+| Governance       | Snowflake Horizon Catalog + Collibra/Atlan     | Access control, lineage, PII and LGPD compliance   |
 
 ## Repository Structure
 
@@ -83,104 +191,62 @@ Hybrid Medallion Lakehouse/
 ├── 04-data-governance-framework.md  # Policies, ownership, lineage, LGPD controls
 ├── 05-risks-and-compliance.md       # Risk register and compliance posture
 ├── README.md                        # This document
+├── CHANGELOG.md                     # Release notes
 │
-├── docs/                            # Long-form documentation and references
-│   ├── architecture/                # Diagrams and Architecture Decision Records
-│   │   ├── diagrams/                # C4, ERD, lineage and flow diagrams
-│   │   └── adr/                     # Numbered Architecture Decision Records
-│   ├── governance/                  # Governance artifacts and taxonomies
-│   │   ├── policies/                # Access, retention, masking, classification
-│   │   ├── glossary/                # Business and technical terms
-│   │   └── data-dictionary/         # Canonical definitions of datasets and fields
-│   ├── runbooks/                    # Operational procedures and incident playbooks
-│   └── changelog/                   # Versioned release and change notes
+├── data/                            # LOCAL-ONLY fixtures (gitignored for prod data)
+│   └── bronze/                      # Parquet files read by dbt local target
 │
-├── src/                             # Source code and infrastructure definitions
-│   ├── terraform/                   # Infrastructure-as-Code root module
-│   │   ├── modules/                 # Reusable Terraform modules
-│   │   │   ├── snowflake/           # Warehouses, roles, grants, databases
-│   │   │   ├── s3/                  # Buckets, lifecycle, IAM policies
-│   │   │   └── networking/          # VPC, subnets, security groups
-│   │   └── environments/            # Per-env variable sets and state wiring
-│   │       ├── dev/                 # Development environment
-│   │       ├── stg/                 # Staging environment
-│   │       └── prd/                 # Production environment
-│   ├── dbt/                         # dbt project for all transformations
-│   │   ├── models/                  # Bronze, Silver, and Gold models
-│   │   │   ├── bronze/              # Raw landing models
-│   │   │   ├── silver/              # Cleansed and conformed models
-│   │   │   └── gold/                # Curated business and serving models
-│   │   ├── macros/                  # Reusable dbt macros and helpers
-│   │   ├── tests/                   # Singular and generic data tests
-│   │   ├── seeds/                   # Reference and lookup data
-│   │   └── snapshots/               # SCD type 2 tracking
-│   ├── snowpark/                    # Snowpark workloads
-│   │   ├── jobs/                    # Batch Snowpark jobs
-│   │   └── udfs/                    # User-defined functions and procedures
-│   └── ingestion/                   # Data ingestion entry points
-│       ├── snowpipe/                # Snowpipe definitions and file formats
-│       ├── kafka-connect/           # Kafka Connect connector configs
-│       └── api-connectors/          # Custom API ingestion scripts
+├── docker-compose.yml               # LocalStack (S3, KMS) for Terraform local env
 │
-├── pipelines/                       # Delivery pipelines and orchestration
-│   ├── ci-cd/                       # Continuous integration and deployment
-│   │   ├── github-actions/          # GitHub Actions workflows
-│   │   └── azure-devops/            # Azure DevOps pipelines
-│   └── orchestration/               # Workflow orchestration definitions
-│       ├── airflow-dags/            # DAG definitions and operators
-│       └── snowflake-tasks/         # Native Snowflake task graphs
-│
-├── data-quality/                    # Data quality tooling and contracts
-│   ├── great-expectations/          # GE suites and expectations
-│   ├── dqx/                         # Lightweight in-pipeline checks
-│   └── contracts/                   # Producer/consumer data contracts
-│
-├── observability/                   # Monitoring and dashboards
-│   ├── dashboards/                  # Grafana / BI dashboard definitions
-│   └── alerts/                      # Alert rules and notification policies
+├── docs/                            # Long-form documentation
+│   ├── architecture/                # Diagrams and ADRs
+│   ├── governance/                  # Policies, glossary, data dictionary
+│   ├── runbooks/                    # Operational procedures
+│   └── CONVENTIONS.md               # Commit, branch, PR conventions
 │
 ├── scripts/                         # Operational utilities
-│   ├── bootstrap/                   # Environment bootstrap scripts
-│   └── utilities/                   # Maintenance and helper scripts
+│   ├── generate_bronze.py           # Generate synthetic Parquet fixtures
+│   ├── validate_structure.py        # Lightweight repo structure validator
+│   ├── validate-mermaid.mjs         # Renders all Mermaid blocks to verify syntax
+│   ├── make.ps1                     # PowerShell entry point
+│   └── targets.txt                  # List of Make targets
 │
-└── .github/                         # GitHub configuration
-    └── ISSUE_TEMPLATE/              # Standardized issue templates
+├── src/                             # Source code
+│   ├── terraform/
+│   │   ├── modules/                 # Reusable Terraform modules
+│   │   │   ├── snowflake/          # Warehouses, roles, grants, databases
+│   │   │   └── s3/                 # Buckets, lifecycle, IAM policies
+│   │   └── environments/            # Per-env variable sets
+│   │       ├── local/              # LocalStack (free, dev laptop)
+│   │       ├── dev/                # Snowflake dev account
+│   │       ├── stg/                # Snowflake staging account
+│   │       └── prd/                # Snowflake production account
+│   ├── dbt/                         # dbt project
+│   │   ├── models/                  # Bronze, Silver, and Gold models
+│   │   ├── macros/                  # Reusable dbt macros
+│   │   ├── seeds/                   # Reference data (dim_produto)
+│   │   └── tests/                   # Singular tests
+│   └── ingestion/                   # Data ingestion entry points (S3, Kafka, API)
+│
+├── pipelines/                       # Delivery pipelines and orchestration
+├── data-quality/                    # Data quality tooling and contracts
+├── observability/                   # Monitoring and dashboards
+│
+└── .github/
+    ├── workflows/                   # GitHub Actions (CI)
+    └── ISSUE_TEMPLATE/              # Bug, feature, governance templates
 ```
 
-## Quick Start
+## Environments
 
-The following steps bring up the **dev** environment from scratch.
+| Env | Data Warehouse | Object Storage | Cost | Use case |
+|---|---|---|---|---|
+| **local** | DuckDB | Local Parquet (+ LocalStack for S3) | **R$ 0** | Developer laptop, demos, CI |
+| **dev** | Snowflake (trial) | S3 (sa-east-1) | $0 during trial | Integration testing |
+| **stg** | Snowflake | S3 | ~$500–2k/mo | Pre-prod validation |
+| **prd** | Snowflake Enterprise | S3 + KMS + CloudTrail | ~$2k–10k/mo | Production |
 
-1. **Clone the repository**
-
-   ```bash
-   git clone <repository-url>
-   cd "Hybrid Medallion Lakehouse"
-   ```
-
-2. **Configure credentials** — export Snowflake and cloud provider credentials as environment variables, or use a secrets manager.
-
-3. **Provision infrastructure with Terraform**
-
-   ```bash
-   cd src/terraform/environments/dev
-   terraform init
-   terraform plan -out=tfplan
-   terraform apply tfplan
-   ```
-
-4. **Install dbt dependencies and run models**
-
-   ```bash
-   cd src/dbt
-   dbt deps
-   dbt run --target dev
-   dbt test --target dev
-   ```
-
-5. **Validate end-to-end** — trigger an orchestration DAG and inspect the observability dashboards.
-
-For detailed operational steps, see `docs/runbooks/`.
+The same dbt models and Terraform modules deploy to all four. Differences are in `profiles.yml` and `*.tfvars`.
 
 ## Documentation Index
 
@@ -200,23 +266,10 @@ The full governance model is documented in [`04-data-governance-framework.md`](0
 
 ## Contributing
 
-Contributions follow a lightweight, review-driven workflow:
+Contributions follow a lightweight, review-driven workflow. See [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) for full rules.
 
-- **Branching** — create a topic branch from `main` using the pattern `feat/<scope>`, `fix/<scope>`, `chore/<scope>`, or `docs/<scope>`.
-- **Commits** — use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`).
-- **Pull Requests** — open a PR against `main`, fill in the template, link the related issue, and request at least one reviewer from the owning team.
-- **Code Review** — reviewers check correctness, performance, security, and adherence to governance and quality standards.
-- **CI Checks** — Terraform plan, dbt build, data quality tests, and secret scanning must pass before merge.
-- **Documentation** — update the relevant doc under `docs/` or the numbered charter documents when behavior, scope, or architecture changes.
-
-## Team & Contacts
-
-| Role               | Owner                | Contact                |
-|--------------------|----------------------|------------------------|
-| Tech Lead          | _TBD_                | _tech-lead@example.com_ |
-| Data Governance    | _TBD_                | _governance@example.com_ |
-| Product Manager    | _TBD_                | _product@example.com_  |
-
-## License
-
-_License to be defined._ Until a license is selected, all rights are reserved by the project owners.
+- **Branching** — `feat/<scope>`, `fix/<scope>`, `chore/<scope>`, `docs/<scope>`, `release/<version>`
+- **Commits** — Conventional Commits (`feat:`, `fix:`, `docs:`, etc.)
+- **Pull Requests** — open against `main` using the PR template, link the issue, require 1 reviewer
+- **CI Checks** — markdownlint, mermaid-render, terraform-validate (matrix), dbt build (local), pre-commit
+- **Documentation** — update the relevant doc under `docs/` or the numbered charter documents when behavior, scope, or architecture changes

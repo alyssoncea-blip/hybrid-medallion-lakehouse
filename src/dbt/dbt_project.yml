@@ -43,8 +43,14 @@ models:
         relation: true
         columns: true
 
+# Seeds: reference data (small CSVs)
+seeds:
+  hybrid_medallion_lakehouse:
+    +schema: seeds
+    +tags: ["seed"]
+
 vars:
-  # Environment injected by target (dev/stg/prd)
+  # Environment injected by target (local/dev/stg/prd)
   environment: "{{ env_var('DBT_ENV', 'dev') }}"
   # LGPD data classification default
   default_classification: "interno"
@@ -52,3 +58,5 @@ vars:
   bronze_retention_days: 1
   silver_retention_days: 7
   gold_retention_days: 90
+  # Path to local bronze Parquet/CSV files (used by local target)
+  local_bronze_path: "{{ env_var('LOCAL_BRONZE_PATH', '../../data/bronze') }}"

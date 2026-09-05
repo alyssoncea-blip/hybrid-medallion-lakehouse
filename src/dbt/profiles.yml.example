@@ -1,10 +1,28 @@
 hybrid_medallion_lakehouse:
-  target: "{{ env_var('DBT_TARGET', 'dev') }}"
+  target: "{{ env_var('DBT_TARGET', 'local') }}"
   outputs:
+    # -------------------------------------------------------------------------
+    # LOCAL: 100% free, runs on your laptop
+    #   - DuckDB as warehouse (no Snowflake needed)
+    #   - Reads Bronze Parquet/CSV from local data/ folder
+    #   - No cloud credentials required
+    # -------------------------------------------------------------------------
+    local:
+      type: duckdb
+      path: "{{ env_var('DBT_DUCKDB_PATH', '../../data/lakehouse.duckdb') }}"
+      threads: 4
+      tags:
+        environment: local
+        layer: transform
+        cost_center: "R$0 (developer laptop)"
+
+    # -------------------------------------------------------------------------
+    # DEV: Snowflake trial or organization development account
+    # -------------------------------------------------------------------------
     dev:
       type: snowflake
-      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
-      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT', 'dev-account') }}"
+      user: "{{ env_var('SNOWFLAKE_USER', 'dev_user') }}"
       authenticator: externalbrowser
       role: "DEV_HYBRID_LH_TRANSFORM_ROLE"
       database: "DEV_HYBRID_LH_SILVER"
@@ -15,6 +33,9 @@ hybrid_medallion_lakehouse:
         environment: dev
         layer: transform
 
+    # -------------------------------------------------------------------------
+    # STG / PRD: production-grade Snowflake
+    # -------------------------------------------------------------------------
     stg:
       type: snowflake
       account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"

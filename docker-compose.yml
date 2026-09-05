@@ -1,0 +1,27 @@
+version: "3.8"
+
+# LocalStack emula S3, KMS e SQS na sua máquina.
+# Custo: R$ 0 (Community Edition).
+# Subir com:  docker compose up -d
+# Derrubar:    docker compose down
+# Resetar:     docker compose down -v
+
+services:
+  localstack:
+    container_name: hybrid-lakehouse-localstack
+    image: localstack/localstack:3.8
+    ports:
+      - "4566:4566"            # LocalStack edge port
+    environment:
+      - SERVICES=s3,kms,sqs,sts
+      - DEFAULT_REGION=sa-east-1
+      - EAGER_SERVICE_LOADING=1
+      - DEBUG=0
+      - PERSISTENCE=1           # mantém estado entre restarts
+    volumes:
+      - ./volumes/localstack:/var/lib/localstack
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

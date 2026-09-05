@@ -1,0 +1,11 @@
+id,produto_id,descricao,categoria,preco_atual
+1,P001,Pastilha de Freio Dianteira,freios,189.90
+2,P002,Disco de Freio Ventilado,freios,389.50
+3,P003,Filtro de Óleo, filtros,29.90
+4,P004,Filtro de Ar, filtros,39.90
+5,P005,Vela de Ignição, ignicao,18.50
+6,P006,Bateria 60Ah, bateria,549.00
+7,P007,Pneu Aro 15 195/55, pneus,399.00
+8,P008,Alinhamento e Balanceamento, servico,120.00
+9,P009,Troca de Óleo 5W30, servico,180.00
+10,P010,Amortecedor Dianteiro, suspensao,289.00

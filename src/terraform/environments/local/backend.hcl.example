@@ -1,0 +1,5 @@
+endpoint        = "http://localhost:4566"
+region          = "sa-east-1"
+access_key      = "test"
+secret_key      = "test"
+force_path_style = true

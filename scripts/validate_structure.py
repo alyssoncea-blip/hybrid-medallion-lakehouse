@@ -47,6 +47,7 @@ REQUIRED_FILES = [
     "src/dbt/packages.yml",
     ".github/workflows/ci.yml",
     ".github/workflows/pre-commit.yml",
+    "src/terraform/environments/local/main.tf",
     "src/terraform/environments/dev/main.tf",
     "src/terraform/environments/stg/main.tf",
     "src/terraform/environments/prd/main.tf",

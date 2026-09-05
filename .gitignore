@@ -76,6 +76,15 @@ pnpm-lock.yaml
 snowflake_*.zip
 *.snowsql
 
+# Local data lakehouse (DuckDB file + generated Parquet fixtures)
+data/lakehouse.duckdb
+data/bronze/**/*.parquet
+data/silver/
+data/gold/
+
+# LocalStack
+volumes/
+
 # CI/CD artifacts
 .Artifacts*/
 artifacts/

@@ -3,16 +3,18 @@
     tags=['bronze', 'cliente', 'raw']
 ) }}
 
+{% set bronze_path = var('local_bronze_path') %}
+{% set ts_func = 'current_timestamp' if target.type == 'snowflake' else 'now' %}
+
 with source as (
     select
-        raw:id_cliente::varchar                as cliente_id,
-        raw:nome::varchar                      as nome,
-        raw:cpf::varchar                       as cpf,
-        raw:email::varchar                     as email,
-        raw:data_cadastro::timestamp_ntz       as data_cadastro,
-        current_timestamp()                    as _ingested_at
-    from {{ source('bronze_raw', 'clientes_cadastro') }}
-    where raw is not null
+        cast(cliente_id as varchar)   as cliente_id,
+        cast(nome as varchar)         as nome,
+        cast(cpf as varchar)          as cpf,
+        cast(email as varchar)        as email,
+        cast(data_cadastro as date)   as data_cadastro,
+        {{ ts_func }}()               as _ingested_at
+    from read_parquet('{{ bronze_path }}/clientes_cadastro/*.parquet')
 )
 
 select * from source

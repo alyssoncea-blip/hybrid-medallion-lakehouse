@@ -1,0 +1,28 @@
+version: 2
+
+seeds:
+  - name: dim_produto
+    description: >
+      Dimensão de produto (catálogo de autopeças). Usada como referência em
+      joins e testes; não muda com frequência.
+    columns:
+      - name: id
+        description: PK da dimensão produto.
+        tests:
+          - not_null
+          - unique
+      - name: produto_id
+        description: SKU do produto.
+        tests:
+          - not_null
+          - unique
+      - name: descricao
+        tests:
+          - not_null
+      - name: categoria
+        tests:
+          - not_null
+      - name: preco_atual
+        description: Preço atual de tabela em BRL.
+        tests:
+          - not_null

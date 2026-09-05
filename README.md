@@ -265,7 +265,6 @@ The platform enforces a layered governance model covering access control, data c
 
 The full governance model is documented in [`04-data-governance-framework.md`](04-data-governance-framework.md). The platform is designed to comply with **LGPD** (Lei Geral de Proteção de Dados) and equivalent privacy regulations, including purpose limitation, data minimization, access logging, and the right to erasure.
 
-
 ## CI / CD
 
 GitHub Actions runs on every push and PR. The default pipeline (R$ 0) covers:
@@ -308,7 +307,6 @@ make dbt-build
 make validate-tf
 ```
 
-
 ## Contributing
 
 Contributions follow a lightweight, review-driven workflow. See [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) for full rules.
@@ -316,6 +314,7 @@ Contributions follow a lightweight, review-driven workflow. See [`docs/CONVENTIO
 ## Post-Deployment Setup
 
 After the first push, complete the one-time configuration in [docs/GITHUB-SETUP.md](docs/GITHUB-SETUP.md):
+
 - Branch protection rules for main (require CI checks before merge)
 - Optional Secrets (Snowflake credentials for the optional dbt job)
 - Default branch verification

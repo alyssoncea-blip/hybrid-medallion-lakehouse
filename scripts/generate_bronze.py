@@ -16,7 +16,6 @@ Default output: data/bronze/pedidos_vendas/*.parquet
 from __future__ import annotations
 
 import argparse
-import os
 import random
 from datetime import date, datetime, timedelta
 from pathlib import Path

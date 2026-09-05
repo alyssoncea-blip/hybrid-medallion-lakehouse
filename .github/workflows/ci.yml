@@ -145,7 +145,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - run: pip install ruff mypy
+      - run: pip install ruff mypy types-PyYAML
       - run: ruff check src/dbt scripts
       - run: mypy --ignore-missing-imports src/dbt
 

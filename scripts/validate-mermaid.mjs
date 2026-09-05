@@ -41,8 +41,10 @@ function extractMermaidBlocks(markdown) {
 }
 
 async function main() {
+  console.log(`Scanning for .md files in: ${root}`);
   const files = [];
   for await (const f of walk(root)) files.push(f);
+  console.log(`Found ${files.length} markdown files`);
   let total = 0;
   let failed = 0;
   for (const file of files) {

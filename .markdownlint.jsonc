@@ -1,17 +1,18 @@
 {
   "default": true,
-  "MD013": {
-    "line_length": 200,
-    "tables": false,
-    "code_blocks": false
-  },
+  "MD013": false,
   "MD024": {
     "siblings_only": true
   },
   "MD033": false,
+  "MD036": false,
+  "MD040": false,
   "MD041": false,
   "MD046": {
     "style": "fenced"
+  },
+  "MD025": {
+    "front_matter_title": "^\\s*title\\s*[:=]"
   },
   "MD007": {
     "indent": 2

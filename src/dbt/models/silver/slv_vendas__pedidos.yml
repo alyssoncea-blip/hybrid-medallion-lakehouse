@@ -29,7 +29,8 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['ABERTO', 'PAGO', 'FATURADO', 'CANCELADO', 'DEVOLVIDO']
+              arguments:
+                values: ['ABERTO', 'PAGO', 'FATURADO', 'CANCELADO', 'DEVOLVIDO']
       - name: _dbt_valid_from
         description: Início da validade do registro (SCD2).
         tests:
@@ -38,6 +39,7 @@ models:
         description: Fim da validade do registro (SCD2). NULL = ativo.
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - pedido_sk
-            - _dbt_valid_from
+          arguments:
+            combination_of_columns:
+              - pedido_sk
+              - _dbt_valid_from

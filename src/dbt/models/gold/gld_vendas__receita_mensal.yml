@@ -11,7 +11,8 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_match_regex:
-              regex: "^[0-9]{4}-[0-9]{2}$"
+              arguments:
+                regex: "^[0-9]{4}-[0-9]{2}$"
       - name: canal_venda
         tests:
           - not_null
@@ -23,7 +24,8 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
+              arguments:
+                min_value: 0
       - name: receita_liquida
         description: receita_bruta − cancelamentos − devoluções.
         tests:
@@ -32,10 +34,12 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 1
+              arguments:
+                min_value: 1
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - ano_mes
-            - canal_venda
-            - cliente_sk
+          arguments:
+            combination_of_columns:
+              - ano_mes
+              - canal_venda
+              - cliente_sk

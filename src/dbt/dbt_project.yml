@@ -52,13 +52,3 @@ vars:
   bronze_retention_days: 1
   silver_retention_days: 7
   gold_retention_days: 90
-
-seeds:
-  hybrid_medallion_lakehouse:
-    +schema: seeds
-    +tags: ["seed"]
-
-tests:
-  hybrid_medallion_lakehouse:
-    +store_failures: true
-    +severity: warn

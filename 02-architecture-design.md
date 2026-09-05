@@ -179,6 +179,7 @@ DR runbook anual; **chaos drills** trimestrais para Kafka e Snowflake.
 **Decisão.** Adotar **Delta Lake** no Bronze quando o producer é CDC ou exige ACID; manter **Parquet particionado** quando o source é append-only (logs, arquivos) e o consumer é Snowpipe.
 
 **Consequências.**
+
 - (+) ACID, time-travel, schema evolution automática, OPTIMIZE/Z-ORDER.
 - (+) Snowflake lê Delta via `EXTERNAL TABLE` + Iceberg REST catalog compat.
 - (−) +15% custo de storage por `_delta_log/`.
@@ -191,6 +192,7 @@ DR runbook anual; **chaos drills** trimestrais para Kafka e Snowflake.
 **Decisão.** **dbt-core + dbt-snowflake** como engine padrão para Silver/Gold; **Snowpark Python** para casos com lógica complexa (feature engineering ML, UDFs, NLP).
 
 **Consequências.**
+
 - (+) Tests (`not_null`, `unique`, `relationships`), docs, exposures, lineage automático.
 - (+) CI com `dbt build --select state:modified+` reduz tempo de execução em PRs.
 - (−) Curva de aprendizado em Jinja + macros.
@@ -203,6 +205,7 @@ DR runbook anual; **chaos drills** trimestrais para Kafka e Snowflake.
 **Decisão.** **Snowflake Horizon** como system-of-record técnico (tags, policies, lineage). **Collibra** como camada de stewardship/business glossary com federação bidirecional via Horizon Catalog API.
 
 **Consequências.**
+
 - (+) Um único ponto de aplicação de políticas (Horizon).
 - (+) Collibra preservado para governança de negócio já existente.
 - (−) Sync lag 5–15 min entre Horizon ↔ Collibra.

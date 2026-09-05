@@ -1,4 +1,5 @@
 # Data Governance Framework
+
 ## Projeto: Hybrid Medallion Lakehouse
 
 > **Status:** v1.0 — Aprovação pendente pelo Comitê de Dados
@@ -11,9 +12,11 @@
 ## 1. Framework Overview
 
 ### 1.1 Propósito
+
 Estabelecer o modelo de governança de dados para o **Hybrid Medallion Lakehouse**, garantindo que dados provenientes de fontes Oracle, SAP e APIs externas, processados via camadas **Bronze → Silver → Gold** em **Snowflake** com armazenamento híbrido em **S3/GCS**, sejam tratados como **ativo estratégico** com qualidade, segurança, linhagem e conformidade (LGPD, SOX) mensuráveis.
 
 ### 1.2 Princípios Norteadores
+
 | # | Princípio | Descrição |
 |---|-----------|-----------|
 | 1 | **Dados como ativo** | Todo dataset possui owner, valor de negócio e custo documentados. |
@@ -28,6 +31,7 @@ Estabelecer o modelo de governança de dados para o **Hybrid Medallion Lakehouse
 ### 1.3 Escopo
 
 **In-scope:**
+
 - Dados no Snowflake (todas as camadas e warehouses)
 - Objetos em S3 e GCS consumidos pelo lakehouse
 - Pipelines de ingestão (Oracle, SAP, APIs REST, eventos)
@@ -35,6 +39,7 @@ Estabelecer o modelo de governança de dados para o **Hybrid Medallion Lakehouse
 - Metadados em catálogo (Collibra/Atlan) e Horizon Catalog
 
 **Out-of-scope:**
+
 - Planilhas departamentais não integradas ao lakehouse
 - Dados pessoais em sistemas legados sem interface com Snowflake
 - Dados de fornecedores/clientes sob contrato próprio (avaliação caso a caso)
@@ -85,6 +90,7 @@ Estabelecer o modelo de governança de dados para o **Hybrid Medallion Lakehouse
 ## 3. Roles & Responsibilities
 
 ### 3.1 Data Steering Committee
+
 - **Composição:** CDO (chair), CFO, CTO, Head of Risk/Compliance, DPO, 1 Head de domínio.
 - **Cadência:** Mensal.
 - **Responsabilidades:**
@@ -94,6 +100,7 @@ Estabelecer o modelo de governança de dados para o **Hybrid Medallion Lakehouse
   - Acompanhar KPIs de maturidade e risco regulatório.
 
 ### 3.2 Data Owner (1 por domínio de negócio)
+
 - **Quem:** Diretor ou coordenador da área de negócio (ex.: CFO para Financeiro).
 - **Mandato:** Anual, formalizado no Confluence/SharePoint.
 - **Responsabilidades no lakehouse:**
@@ -104,6 +111,7 @@ Estabelecer o modelo de governança de dados para o **Hybrid Medallion Lakehouse
   - Assumir accountability em auditoria (LGPD/SOX).
 
 ### 3.3 Data Steward (1 a 2 por domínio)
+
 - **Quem:** Analista sênior ou coordenador técnico da área.
 - **Reporta:** Funcional ao Data Owner; tático ao Steward Lead.
 - **Responsabilidades:**
@@ -114,6 +122,7 @@ Estabelecer o modelo de governança de dados para o **Hybrid Medallion Lakehouse
   - Ser ponto focal LGPD para a área.
 
 ### 3.4 Data Custodian (TI/Engenharia)
+
 - **Quem:** Equipe de Engenharia de Dados / Plataforma.
 - **Responsabilidades:**
   - Implementar RBAC/ABAC no Snowflake (roles, row access policies).
@@ -123,6 +132,7 @@ Estabelecer o modelo de governança de dados para o **Hybrid Medallion Lakehouse
   - Aplicar políticas de retenção e descarte.
 
 ### 3.5 Engenheiro de Dados
+
 - **Responsabilidades:**
   - Desenvolver pipelines Bronze→Silver→Gold seguindo padrões de catálogo.
   - Instrumentar testes de qualidade em código (CI/CD).
@@ -130,6 +140,7 @@ Estabelecer o modelo de governança de dados para o **Hybrid Medallion Lakehouse
   - Reportar incidentes ao Custodian + Steward.
 
 ### 3.6 Analista / Consumer
+
 - **Responsabilidades:**
   - Consumir apenas dados Gold catalogados.
   - Reportar anomalias ou dúvidas ao Steward via Jira.
@@ -151,12 +162,14 @@ Estabelecer o modelo de governança de dados para o **Hybrid Medallion Lakehouse
 **Regra:** Classificação é atribuída pelo **Data Owner** e validada pelo **Steward**. É obrigatória para todo dataset na Silver; datasets Gold só podem ser **públicos, internos ou confidenciais** (nunca restrito direto da fonte).
 
 ### 4.2 Política de Qualidade de Dados
+
 - Toda tabela Gold deve ter ≥ 95% de score nas 6 dimensões (ver Seção 7).
 - Toda tabela Silver deve ter ≥ 85%.
 - Bronze é avaliada por completeness e schema conformity (≥ 99%).
 - Falha em teste crítico bloqueia promoção para a próxima camada.
 
 ### 4.3 Política de Retenção e Descarte
+
 | Camada | Retenção | Destino após TTL |
 |--------|----------|------------------|
 | Bronze (raw) | 90 dias | S3/GCS Glacier → expurgo |
@@ -169,6 +182,7 @@ Estabelecer o modelo de governança de dados para o **Hybrid Medallion Lakehouse
 - Toda exclusão precisa de ticket Jira aprovado pelo Owner.
 
 ### 4.4 Política de Acesso (RBAC + ABAC)
+
 - **RBAC por papel:** `ROLE_DOMAIN_<X>_READER`, `ROLE_DOMAIN_<X>_WRITER`, `ROLE_GOLD_CONSUMER`, etc.
 - **ABAC por atributos:** tags de classificação, departamento, projeto, geografia.
 - **Just-in-time access:** privilégios elevados requerem aprovação via Jira + expiração em 8h.
@@ -176,6 +190,7 @@ Estabelecer o modelo de governança de dados para o **Hybrid Medallion Lakehouse
 - **Revisão trimestral** de acessos pelo Steward.
 
 ### 4.5 Política de Privacidade e LGPD
+
 - **Bases legais** mapeadas por dataset no catálogo (consentimento, execução de contrato, obrigação legal, legítimo interesse).
 - **RIPD (Relatório de Impacto)** obrigatório para novos casos de uso com PII.
 - **Direitos do titular** (acesso, correção, exclusão, portabilidade) atendidos em até **15 dias** via workflow Jira.
@@ -183,12 +198,14 @@ Estabelecer o modelo de governança de dados para o **Hybrid Medallion Lakehouse
 - **Transferência internacional** (S3 US, GCS) requer contrato com cláusulas-padrão.
 
 ### 4.6 Política de Catálogo e Metadados
+
 - 100% dos datasets Gold e Silver devem estar no catálogo.
 - Metadados obrigatórios: owner, steward, classificação, domínio, base legal, SLA, tags técnicas.
 - Atualização ≤ 7 dias após mudança de schema.
 - Catálogo é a **fonte única de descoberta** (search-first).
 
 ### 4.7 Política de Linhagem de Dados
+
 - Linhagem fim-a-fim (origem → Bronze → Silver → Gold → consumer).
 - Captura automática via OpenLineage + Marquez (ou similar).
 - Mudanças de schema devem refletir em até 24h no catálogo.
@@ -245,6 +262,7 @@ Estabelecer o modelo de governança de dados para o **Hybrid Medallion Lakehouse
 | Tags técnicas | `snake_case` | `pii=true`, `classification=confidencial` |
 
 ### 6.3 Ownership
+
 - Toda entrada do glossário tem **1 owner + 1 steward**.
 - Mudança de definição precisa de aprovação do Owner + publicação no Confluence.
 
@@ -319,9 +337,11 @@ models:
 | `retention_days` | inteiro | Toda tabela |
 
 ### 8.2 Tags de Negócio (exemplos)
+
 - `campanha:verao2026`, `segmento:B2B`, `regiao:SP`, `produto:linha_premium`
 
 ### 8.3 Classificação Automática
+
 - Regras Snowflake Horizon + regex/DLP para detectar CPF, CNPJ, email, cartão, salário.
 - Score de confiança ≥ 0,85 aplica tag automaticamente; abaixo disso vira ticket Jira.
 - Auditoria semanal do Steward para validar classificação automática.
@@ -386,6 +406,7 @@ models:
 | **Task - Catalogação** | Dataset sem owner/descrição | Dataset, responsável |
 
 ### 10.3 Escalation Path
+
 1. **N1 — Steward** (1 dia)
 2. **N2 — Data Owner** (3 dias)
 3. **N3 — Council** (5 dias)
@@ -411,6 +432,7 @@ models:
 | **Taxa de schema drift tratada em 24h** | ≥ 95% | Monitoramento |
 
 ### 11.2 Dashboard Executivo (mensal ao Steering)
+
 - Heatmap de qualidade por domínio.
 - Top 10 exceções abertas por aging.
 - Status de conformidade LGPD (pedidos vs. prazo).
@@ -493,6 +515,7 @@ models:
 ## 15. Anexos e Referências
 
 ### 15.1 Documentos Relacionados
+
 - Política de Segurança da Informação
 - Política de Classificação da Informação
 - Política de Retenção (jurídico)
@@ -500,6 +523,7 @@ models:
 - Contratos de transferência internacional (S3/GCS)
 
 ### 15.2 Glossário de Siglas
+
 - **CDO** — Chief Data Officer
 - **DPO** — Data Protection Officer (encarregado LGPD)
 - **PII** — Personally Identifiable Information

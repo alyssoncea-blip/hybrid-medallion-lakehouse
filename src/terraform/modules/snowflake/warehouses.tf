@@ -3,7 +3,7 @@
 #
 # Creates:
 #   - One warehouse per workload type (ingest, transform, bi, ml, admin)
-#   - Resource monitors per warehouse (80% warn / 100% cap)
+#   - Resource monitors per warehouse (notify at thresholds, suspend at 100)
 #   - Auto-suspend / auto-resume policy aligned to FinOps guidance
 ###############################################################################
 
@@ -11,7 +11,7 @@ locals {
   warehouses = {
     ingest = {
       name           = "${upper(var.environment)}_HYBRID_LH_INGEST_WH"
-      size           = var.environment == "prd" ? "XSMALL" : "XSMALL"
+      size           = "XSMALL"
       auto_suspend   = 60
       auto_resume    = true
       min_clusters   = 1
@@ -73,34 +73,27 @@ locals {
 resource "snowflake_warehouse" "wh" {
   for_each = local.warehouses
 
-  name           = each.value.name
-  warehouse_size = each.value.size
-  auto_suspend   = each.value.auto_suspend
-  auto_resume    = each.value.auto_resume
-  min_cluster_count = each.value.min_clusters
-  max_cluster_count = each.value.max_clusters
-  scaling_policy = each.value.scaling_policy
-  comment        = each.value.comment
-
-  tags = {
-    environment = var.environment
-    workload    = each.key
-    layer       = "platform"
-    domain      = "platform"
-  }
+  name                = each.value.name
+  warehouse_size      = each.value.size
+  auto_suspend        = each.value.auto_suspend
+  auto_resume         = each.value.auto_resume
+  min_cluster_count   = each.value.min_clusters
+  max_cluster_count   = each.value.max_clusters
+  scaling_policy      = each.value.scaling_policy
+  comment             = each.value.comment
+  resource_monitor    = snowflake_resource_monitor.wh_monitor[each.key].name
+  initially_suspended = false
 }
 
 resource "snowflake_resource_monitor" "wh_monitor" {
   for_each = local.warehouses
 
-  name         = "RM_${upper(var.environment)}_HYBRID_LH_${upper(each.key)}"
-  credit_quota = local.budget_per_warehouse[each.key]
-  frequency    = "MONTHLY"
+  name            = "RM_${upper(var.environment)}_HYBRID_LH_${upper(each.key)}"
+  credit_quota    = local.budget_per_warehouse[each.key]
+  frequency       = "MONTHLY"
   start_timestamp = "IMMEDIATELY"
 
-  notify_users = var.notification_users
-  suspend_trigger_percent   = 100
-  suspend_immediate_trigger = false
-
-  warehouses = [snowflake_warehouse.wh[each.key].name]
+  notify_users    = var.notification_users
+  notify_triggers = [50, 75, 90]
+  suspend_trigger = 100
 }

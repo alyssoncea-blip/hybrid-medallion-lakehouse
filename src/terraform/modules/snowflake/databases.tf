@@ -12,29 +12,29 @@
 locals {
   databases = {
     bronze = {
-      name             = "${upper(var.environment)}_HYBRID_LH_BRONZE"
+      name                = "${upper(var.environment)}_HYBRID_LH_BRONZE"
       data_retention_days = 1
-      comment          = "Bronze layer — raw landing zone (schema-on-read)"
+      comment             = "Bronze layer — raw landing zone (schema-on-read)"
     }
     silver = {
-      name             = "${upper(var.environment)}_HYBRID_LH_SILVER"
+      name                = "${upper(var.environment)}_HYBRID_LH_SILVER"
       data_retention_days = 7
-      comment          = "Silver layer — cleansed, conformed, SCD2"
+      comment             = "Silver layer — cleansed, conformed, SCD2"
     }
     gold = {
-      name             = "${upper(var.environment)}_HYBRID_LH_GOLD"
+      name                = "${upper(var.environment)}_HYBRID_LH_GOLD"
       data_retention_days = 90
-      comment          = "Gold layer — business marts, ML features"
+      comment             = "Gold layer — business marts, ML features"
     }
     govern = {
-      name             = "${upper(var.environment)}_HYBRID_LH_GOVERN"
+      name                = "${upper(var.environment)}_HYBRID_LH_GOVERN"
       data_retention_days = 90
-      comment          = "Governance metadata (lineage, policies, tags)"
+      comment             = "Governance metadata (lineage, policies, tags)"
     }
     analytics = {
-      name             = "${upper(var.environment)}_HYBRID_LH_ANALYTICS"
+      name                = "${upper(var.environment)}_HYBRID_LH_ANALYTICS"
       data_retention_days = 90
-      comment          = "Semantic layer and certified metrics"
+      comment             = "Semantic layer and certified metrics"
     }
   }
 }
@@ -63,10 +63,10 @@ resource "snowflake_schema" "bronze" {
     "raw_apis_externas",
   ])
 
-  database = snowflake_database.layer["bronze"].name
-  name     = upper(each.value)
-  comment  = "Bronze raw landing for ${each.value}"
-  is_transient = true
+  database                    = snowflake_database.layer["bronze"].name
+  name                        = upper(each.value)
+  comment                     = "Bronze raw landing for ${each.value}"
+  is_transient                = true
   data_retention_time_in_days = 1
 
   lifecycle {
@@ -85,9 +85,9 @@ resource "snowflake_schema" "silver" {
     "financeiro",
   ])
 
-  database = snowflake_database.layer["silver"].name
-  name     = upper(each.value)
-  comment  = "Silver cleansed and conformed data for ${each.value}"
+  database                    = snowflake_database.layer["silver"].name
+  name                        = upper(each.value)
+  comment                     = "Silver cleansed and conformed data for ${each.value}"
   data_retention_time_in_days = 7
 
   lifecycle {
@@ -106,9 +106,9 @@ resource "snowflake_schema" "gold" {
     "financeiro",
   ])
 
-  database = snowflake_database.layer["gold"].name
-  name     = upper(each.value)
-  comment  = "Gold business marts for ${each.value}"
+  database                    = snowflake_database.layer["gold"].name
+  name                        = upper(each.value)
+  comment                     = "Gold business marts for ${each.value}"
   data_retention_time_in_days = 90
 
   lifecycle {

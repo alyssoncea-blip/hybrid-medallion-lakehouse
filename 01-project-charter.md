@@ -26,6 +26,7 @@
 ## 2. Business Case
 
 ### 2.1 Problema
+
 O Grupo Autoglass opera com dados de vendas, estoque, fiscal, CRM, ERP e múltiplas APIs externas em silos heterogêneos (legados on-premise, bancos transacionais, planilhas e APIs SaaS). A camada analítica atual baseada em Data Warehouse tradicional apresenta três gargalos críticos:
 
 - **Custo de storage elevado:** dados quentes e frios convivem no mesmo warehouse, pagando o mesmo preço por TB/mês.
@@ -33,6 +34,7 @@ O Grupo Autoglass opera com dados de vendas, estoque, fiscal, CRM, ERP e múltip
 - **Governança fragmentada:** ausência de catálogo unificado, linhagem e controle de acesso consistente, expondo o grupo a riscos regulatórios (LGPD) e a retrabalho de auditoria.
 
 ### 2.2 Oportunidade
+
 Adotar o padrão **Medallion Architecture (Bronze → Silver → Gold)** combinando:
 
 - **Object Storage (S3/GCS)** como camada Bronze de baixo custo para dados brutos, imutáveis e versionados.
@@ -68,6 +70,7 @@ Adotar o padrão **Medallion Architecture (Bronze → Silver → Gold)** combina
 | O7 | Disponibilizar camada Gold para consumo | # dashboards/contratos servidos pela camada Gold | 12 | 60+ |
 
 ### 3.2 Critérios de Sucesso Global
+
 O projeto será considerado **bem-sucedido** quando, em produção por 90 dias consecutivos, atingir todas as metas M9 listadas acima, sem violação de compliance LGPD registrada.
 
 ---
@@ -156,6 +159,7 @@ O projeto será considerado **bem-sucedido** quando, em produção por 90 dias c
 | **TOTAL** | | | **4.850.000** | **100,0%** |
 
 **Observações:**
+
 - Valores referenciais, sem impostos diretos.
 - Headcount considera mix de contratação CLT + 1–2 consultorias especializadas pontuais.
 - Custo de cloud assume FinOps ativo a partir de M3.
@@ -177,6 +181,7 @@ O projeto será considerado **bem-sucedido** quando, em produção por 90 dias c
 ## 9. Assumptions & Constraints
 
 ### 9.1 Assumptions
+
 - **A1.** A direção executiva mantém o patrocínio e o orçamento aprovado até M9.
 - **A2.** Equipe núcleo (PM, Tech Lead, 1 DE, 1 DG) disponível em M0; demais contratações onboard em até 30 dias.
 - **A3.** As áreas de origem (Comercial, Operações, Fiscal, CRM, ERP) designam Data Owners e disponibilizam acesso às APIs/banco em até 15 dias após solicitação.
@@ -187,6 +192,7 @@ O projeto será considerado **bem-sucedido** quando, em produção por 90 dias c
 - **A8.** O BI corporativo (Power BI/Qlik/Looker) será consumido como camada de apresentação — sem mudança no M9.
 
 ### 9.2 Constraints
+
 - **C1.** Orçamento total aprovado de **R$ 4.850.000**, com tolerância de **±10%** sem nova aprovação.
 - **C2.** Dados pessoais devem permanecer em região brasileira; nenhum dado de vendas/estoque pode cruzar fronteira internacional sem aprovação do DPO.
 - **C3.** Prazo máximo de entrega: **28/11/2026**. Atrasos superiores a 60 dias exigem replanejamento formal e nova aprovação da Steering Committee.
@@ -200,13 +206,13 @@ O projeto será considerado **bem-sucedido** quando, em produção por 90 dias c
 
 | Papel | Nome | Assinatura | Data |
 |---|---|---|---|
-| **Sponsor Executivo (CDO/VP TI)** | _________________________ | _________________________ | ____/____/2026 |
-| **Diretor Comercial (Negócio)** | _________________________ | _________________________ | ____/____/2026 |
-| **Diretor de Operações (Negócio)** | _________________________ | _________________________ | ____/____/2026 |
-| **CISO / Segurança da Informação** | _________________________ | _________________________ | ____/____/2026 |
-| **DPO / Encarregado de Dados (LGPD)** | _________________________ | _________________________ | ____/____/2026 |
-| **CFO / Controller (Finanças)** | _________________________ | _________________________ | ____/____/2026 |
-| **Project Manager** | _________________________ | _________________________ | ____/____/2026 |
+| **Sponsor Executivo (CDO/VP TI)** | _________________________ | _________________________ | ****/****/2026 |
+| **Diretor Comercial (Negócio)** | _________________________ | _________________________ | ****/****/2026 |
+| **Diretor de Operações (Negócio)** | _________________________ | _________________________ | ****/****/2026 |
+| **CISO / Segurança da Informação** | _________________________ | _________________________ | ****/****/2026 |
+| **DPO / Encarregado de Dados (LGPD)** | _________________________ | _________________________ | ****/****/2026 |
+| **CFO / Controller (Finanças)** | _________________________ | _________________________ | ****/****/2026 |
+| **Project Manager** | _________________________ | _________________________ | ****/****/2026 |
 
 ---
 

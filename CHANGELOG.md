@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Initial project documentation set: charter, architecture, roadmap, governance framework, risks & compliance.
 - Repository structure for Terraform, dbt, Snowpark, ingestion, pipelines, data-quality, observability.
 - Governance policies baseline (classification, quality, retention, access, LGPD, catalog, lineage).
@@ -18,4 +19,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.0] — 2026-09-05
 
 ### Added
+
 - Initial commit of the Hybrid Medallion Lakehouse project scaffolding and documentation.

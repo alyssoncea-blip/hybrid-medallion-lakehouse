@@ -7,7 +7,8 @@ sources:
       alimentadas por Snowpipe a partir de arquivos Parquet/JSON.
     database: "DEV_HYBRID_LH_BRONZE"
     schema: RAW_VENDAS
-    tags: ["bronze", "raw"]
+    config:
+      tags: ["bronze", "raw"]
     tables:
       - name: pedidos_vendas
         description: Pedidos de vendas extraídos do SAP SD/Oracle OMS.
@@ -37,6 +38,16 @@ sources:
 
       - name: fiscal_notas
         description: Documentos fiscais (NF-e) emitidos e recebidos.
+        columns:
+          - name: raw
+            tests: [not_null]
+          - name: metadata_file_name
+            tests: [not_null]
+          - name: load_timestamp
+            tests: [not_null]
+
+      - name: clientes_cadastro
+        description: Cadastro de clientes vindo do CRM.
         columns:
           - name: raw
             tests: [not_null]

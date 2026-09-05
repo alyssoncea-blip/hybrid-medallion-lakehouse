@@ -152,6 +152,7 @@ Hybrid Medallion Lakehouse/
 The following steps bring up the **dev** environment from scratch.
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd "Hybrid Medallion Lakehouse"
@@ -160,6 +161,7 @@ The following steps bring up the **dev** environment from scratch.
 2. **Configure credentials** — export Snowflake and cloud provider credentials as environment variables, or use a secrets manager.
 
 3. **Provision infrastructure with Terraform**
+
    ```bash
    cd src/terraform/environments/dev
    terraform init
@@ -168,6 +170,7 @@ The following steps bring up the **dev** environment from scratch.
    ```
 
 4. **Install dbt dependencies and run models**
+
    ```bash
    cd src/dbt
    dbt deps

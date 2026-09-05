@@ -16,8 +16,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_cliente__cadastro')
-              field: cliente_id
+              arguments:
+                to: ref('stg_cliente__cadastro')
+                field: cliente_id
       - name: data_pedido
         description: Data de criação do pedido.
         tests:
@@ -27,21 +28,24 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 10000000
-              strictly: false
+              arguments:
+                min_value: 0
+                max_value: 10000000
+                strictly: false
       - name: status
         description: Status do pedido no fluxo de vendas.
         tests:
           - not_null
           - accepted_values:
-              values: ['ABERTO', 'PAGO', 'FATURADO', 'CANCELADO', 'DEVOLVIDO']
+              arguments:
+                values: ['ABERTO', 'PAGO', 'FATURADO', 'CANCELADO', 'DEVOLVIDO']
       - name: _ingested_at
         description: Timestamp de ingestão no Bronze.
         tests:
           - not_null
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - pedido_id
-            - data_pedido
+          arguments:
+            combination_of_columns:
+              - pedido_id
+              - data_pedido

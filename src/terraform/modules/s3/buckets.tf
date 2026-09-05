@@ -112,6 +112,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "bronze" {
   rule {
     id     = "tiered-storage"
     status = "Enabled"
+    filter {}
     transition {
       days          = var.bronze_lifecycle_transition_days
       storage_class = "STANDARD_IA"
@@ -148,5 +149,5 @@ resource "aws_kms_alias" "data" {
 
 output "bronze_bucket" { value = aws_s3_bucket.bronze.bucket }
 output "silver_bucket" { value = aws_s3_bucket.silver.bucket }
-output "gold_bucket"   { value = aws_s3_bucket.gold.bucket }
-output "kms_key_arn"   { value = aws_kms_key.data.arn }
+output "gold_bucket" { value = aws_s3_bucket.gold.bucket }
+output "kms_key_arn" { value = aws_kms_key.data.arn }

@@ -13,9 +13,12 @@ import path from "node:path";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import os from "node:os";
+import { fileURLToPath } from "node:url";
 
 const exec = promisify(execFile);
-const root = path.resolve(new URL("..", import.meta.url).pathname);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const root = path.resolve(__dirname, "..");
 
 async function* walk(dir) {
   const entries = await fs.readdir(dir, { withFileTypes: true });
@@ -51,7 +54,7 @@ async function main() {
       const out = `${tmp}.svg`;
       await fs.writeFile(tmp, block, "utf8");
       try {
-        await exec("npx", ["-y", "-p", "@mermaid-js/mermaid-cli", "mmdc", "-i", tmp, "-o", out, "-q"]);
+        await exec("npx", ["-y", "-p", "@mermaid-js/mermaid-cli", "mmdc", "-i", tmp, "-o", out, "-q"], { shell: true });
         console.log(`  OK  ${path.relative(root, file)} [block ${i + 1}]`);
       } catch (err) {
         failed++;

@@ -1,0 +1,6 @@
+node_modules/
+src/dbt/dbt_packages/
+src/dbt/target/
+src/dbt/logs/
+.terraform/
+CHANGELOG.md

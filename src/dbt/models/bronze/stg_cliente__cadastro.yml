@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: stg_cliente__cadastro
+    description: >
+      Cadastro de clientes a partir do CRM (Salesforce) e de fontes externas,
+      ingerido via Snowpipe para a camada Bronze.
+    columns:
+      - name: cliente_id
+        description: Identificador único do cliente (PK).
+        tests:
+          - not_null
+          - unique
+      - name: nome
+        description: Nome completo ou razão social.
+      - name: cpf
+        description: CPF (mascarado por LGPD em ambientes não-privilegiados).
+        tests:
+          - not_null
+      - name: email
+        description: E-mail principal do cliente.
+      - name: data_cadastro
+        description: Data de cadastro do cliente.
+        tests:
+          - not_null
+      - name: _ingested_at
+        tests:
+          - not_null

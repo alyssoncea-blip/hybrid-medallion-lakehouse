@@ -363,6 +363,7 @@ Adotamos abordagem híbrida baseada em **ISO 31000:2018** (framework de gestão 
 ### 8.2 Detalhamento por Framework
 
 #### SOC 2 Type II
+
 - **Escopo**: Plataforma Lakehouse (Snowflake + S3/GCS + integrações).
 - **Trust Service Criteria**: Security (obrigatório), Availability, Confidentiality.
 - **Período de observação**: mínimo 6 meses (target 12 meses para Type II robusto).
@@ -371,6 +372,7 @@ Adotamos abordagem híbrida baseada em **ISO 31000:2018** (framework de gestão 
 - **Automação**: Vanta ou Drata para coleta contínua de evidências.
 
 #### ISO/IEC 27001:2022
+
 - **Escopo**: Toda a operação de dados do Lakehouse + infraestrutura.
 - **Statement of Applicability (SoA)**: 93 controles da Annex A.
 - **Risk Treatment Plan**: derivado desta matriz de riscos.
@@ -379,12 +381,14 @@ Adotamos abordagem híbrida baseada em **ISO 31000:2018** (framework de gestão 
 - **Custo estimado**: BRL 250k-400k para certificação inicial.
 
 #### ISO/IEC 27701:2019
+
 - **Extensão** do ISO 27001 para PII.
 - **PIMS** (Privacy Information Management System).
 - **Alinhado** com LGPD, GDPR.
 - **Pré-requisito**: ISO 27001 vigente.
 
 #### LGPD (Autoavaliação ANPD)
+
 - **Não é certificação**, mas sim programa de adequação.
 - **Adoção de programas de governança** conforme Art. 50 LGPD gera atenuante de multas.
 - **Documentação**: RIPD, política de privacidade, DPO ativo, gestão de incidentes.

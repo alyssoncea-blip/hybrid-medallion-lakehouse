@@ -1,4 +1,8 @@
-name: CI
+#!/usr/bin/env python3
+"""Write ci.yml with clean UTF-8 (no BOM)."""
+import pathlib
+
+YAML_CONTENT = r"""name: CI
 
 on:
   push:
@@ -173,3 +177,15 @@ jobs:
             fi
           done
           echo "All required checks passed."
+"""
+
+path = pathlib.Path(".github/workflows/ci.yml")
+path.write_text(YAML_CONTENT, encoding="utf-8")
+
+# Verify no BOM
+raw = path.read_bytes()
+assert raw[:3] != b'\xef\xbb\xbf', "BOM detected!"
+assert raw[0:4] == b'name', f"Expected 'name' at start, got: {raw[0:4]}"
+
+print(f"Written {len(raw)} bytes, {YAML_CONTENT.count(chr(10))+1} lines")
+print(f"First 20 bytes: {raw[:20].hex(' ')}")

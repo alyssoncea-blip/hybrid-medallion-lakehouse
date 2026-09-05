@@ -164,8 +164,11 @@ jobs:
     steps:
       - name: Fail if any required check failed
         run: |
+          set -e
+          # Check each required job result using GitHub Actions context
           for check in "markdown-lint" "mermaid-render" "structure-validate" "terraform" "terraform-test" "dbt-build-local" "python-lint"; do
-            result="${{ needs[check].result }}"
+            result_var="NEEDS_${check//-/_}_RESULT"
+            result="${!result_var}"
             echo "Check $check: $result"
             if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
               echo "FAIL: $check did not pass (result=$result)"
@@ -173,3 +176,11 @@ jobs:
             fi
           done
           echo "All required checks passed."
+        env:
+          NEEDS_MARKDOWN_LINT_RESULT: ${{ needs.markdown-lint.result }}
+          NEEDS_MERMAID_RENDER_RESULT: ${{ needs.mermaid-render.result }}
+          NEEDS_STRUCTURE_VALIDATE_RESULT: ${{ needs.structure-validate.result }}
+          NEEDS_TERRAFORM_RESULT: ${{ needs.terraform.result }}
+          NEEDS_TERRAFORM_TEST_RESULT: ${{ needs.terraform-test.result }}
+          NEEDS_DBT_BUILD_LOCAL_RESULT: ${{ needs.dbt-build-local.result }}
+          NEEDS_PYTHON_LINT_RESULT: ${{ needs.python-lint.result }}

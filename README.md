@@ -3,7 +3,7 @@
 > Unified, governed, and cloud-agnostic data platform that turns raw multi-source data into trusted, analytics-ready assets through a Bronze–Silver–Gold architecture on Snowflake.
 
 ![Status](https://img.shields.io/badge/status-active-success)
-![CI](https://img.shields.io/badge/CI-passing-brightgreen?logo=githubactions&logoColor=white)
+![CI](https://github.com/alyssoncea-blip/hybrid-medallion-lakehouse/actions/workflows/ci.yml/badge.svg?branch=main)
 ![Version](https://img.shields.io/badge/version-0.2.0-blue)
 ![Cost](https://img.shields.io/badge/local%20dev-R$0-brightgreen)
 ![License](https://img.shields.io/badge/license-TBD-lightgrey)
@@ -312,6 +312,15 @@ make validate-tf
 ## Contributing
 
 Contributions follow a lightweight, review-driven workflow. See [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) for full rules.
+
+## Post-Deployment Setup
+
+After the first push, complete the one-time configuration in [docs/GITHUB-SETUP.md](docs/GITHUB-SETUP.md):
+- Branch protection rules for main (require CI checks before merge)
+- Optional Secrets (Snowflake credentials for the optional dbt job)
+- Default branch verification
+- First release tag (v0.2.0)
+- GitHub Pages (optional, for hosted docs)
 
 - **Branching** — `feat/<scope>`, `fix/<scope>`, `chore/<scope>`, `docs/<scope>`, `release/<version>`
 - **Commits** — Conventional Commits (`feat:`, `fix:`, `docs:`, etc.)

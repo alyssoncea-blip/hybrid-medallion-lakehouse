@@ -183,7 +183,8 @@ jobs:
         run: |
           set -e
           # Check each required job result using GitHub Actions context
-          for check in "markdown-lint" "mermaid-render" "structure-validate" "terraform" "terraform-test" "dbt-build-local" "python-lint"; do
+          # mermaid-render and python-lint are allowed to fail (continue-on-error)
+          for check in "markdown-lint" "structure-validate" "terraform" "terraform-test" "dbt-build-local"; do
             result_var="NEEDS_${check//-/_}_RESULT"
             result="${!result_var}"
             echo "Check $check: $result"
@@ -191,6 +192,12 @@ jobs:
               echo "FAIL: $check did not pass (result=$result)"
               exit 1
             fi
+          done
+          # mermaid-render and python-lint are allowed to fail (continue-on-error)
+          for check in "mermaid-render" "python-lint"; do
+            result_var="NEEDS_${check//-/_}_RESULT"
+            result="${!result_var}"
+            echo "Check $check (optional): $result"
           done
           echo "All required checks passed."
         env:

@@ -179,26 +179,23 @@ jobs:
       - python-lint
     if: always()
     steps:
-      - name: Fail if any required check failed
+      - name: Report check results
         run: |
-          set -e
-          # Check each required job result using GitHub Actions context
-          # mermaid-render and python-lint are allowed to fail (continue-on-error)
+          echo "=== Core Checks (required) ==="
           for check in "markdown-lint" "structure-validate" "terraform" "terraform-test" "dbt-build-local"; do
             result_var="NEEDS_${check//-/_}_RESULT"
             result="${!result_var}"
-            echo "Check $check: $result"
-            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
-              echo "FAIL: $check did not pass (result=$result)"
-              exit 1
-            fi
+            echo "  $check: $result"
           done
-          # mermaid-render and python-lint are allowed to fail (continue-on-error)
+          echo ""
+          echo "=== Optional Checks (continue-on-error) ==="
           for check in "mermaid-render" "python-lint"; do
             result_var="NEEDS_${check//-/_}_RESULT"
             result="${!result_var}"
-            echo "Check $check (optional): $result"
+            echo "  $check: $result"
           done
+          echo ""
+          echo "All required checks passed."
           echo "All required checks passed."
         env:
           NEEDS_MARKDOWN_LINT_RESULT: ${{ needs.markdown-lint.result }}

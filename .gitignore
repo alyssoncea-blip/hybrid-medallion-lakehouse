@@ -1,0 +1,92 @@
+# =============================================================================
+# Hybrid Medallion Lakehouse — .gitignore
+# =============================================================================
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.history/
+
+# Secrets & local config
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+secrets/
+config.local.*
+credentials.json
+service-account*.json
+
+# Terraform
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+*.tfplan
+*.tfplan.json
+tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# dbt
+dbt_packages/
+dbt_packages/*
+logs/
+target/
+user_id.txt
+.venv/
+dbt-env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.cover
+
+# Node (for some linters)
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Snowflake
+snowflake_*.zip
+*.snowsql
+
+# CI/CD artifacts
+.Artifacts*/
+artifacts/
+*.log
+
+# Backups
+*.bak
+*.backup
+*.old
+
+# Temporary files
+tmp/
+temp/
+*.tmp

@@ -1,0 +1,17 @@
+---
+# Enforce Conventional Commits on every commit message
+# Allowed types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert
+# Allowed scopes follow package or domain naming, e.g. (dbt), (terraform), (governance), (docs)
+# Example: feat(dbt): add silver customers conformed model
+# Example: docs(charter): update budget estimate
+# Example: ci(github-actions): add terraform plan workflow
+---
+types_or: [feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert]
+scope_enforced: false
+scope_case: lower-case
+subject_case: lower-case
+subject_full_stop: false
+subject_min_length: 5
+subject_max_length: 100
+body_max_line_length: 120
+footer_max_line_length: 120

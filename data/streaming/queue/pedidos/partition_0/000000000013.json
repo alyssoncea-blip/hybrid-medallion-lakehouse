@@ -1,0 +1,1 @@
+{"key": null, "value": {"event_id": "evt_pedido_14_6844", "event_type": "PEDIDO_ATUALIZADO", "event_ts": "2026-09-06T01:23:32.938667+00:00", "payload": {"pedido_id": 14, "status_anterior": "CANCELADO", "status_novo": "ENTREGUE"}, "source": "event-producer", "correlation_id": "corr_14"}, "partition": 0, "offset": 13, "timestamp": "2026-09-06T01:23:32.949068", "headers": {}}

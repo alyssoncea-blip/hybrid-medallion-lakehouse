@@ -1,0 +1,1 @@
+{"key": null, "value": {"event_id": "evt_pedido_15_4535", "event_type": "PEDIDO_ATUALIZADO", "event_ts": "2026-09-06T01:23:32.938667+00:00", "payload": {"pedido_id": 15, "status_anterior": "ENTREGUE", "status_novo": "ENTREGUE"}, "source": "event-producer", "correlation_id": "corr_15"}, "partition": 0, "offset": 14, "timestamp": "2026-09-06T01:23:32.950073", "headers": {}}

@@ -1,0 +1,17 @@
+{
+  "required_status_checks": {
+    "strict": true,
+    "contexts": [
+      "markdown-lint",
+      "structure-validate",
+      "terraform",
+      "terraform-test",
+      "dbt-build-local"
+    ]
+  },
+  "enforce_admins": false,
+  "required_pull_request_reviews": null,
+  "restrictions": null,
+  "allow_force_pushes": false,
+  "allow_deletions": false
+}

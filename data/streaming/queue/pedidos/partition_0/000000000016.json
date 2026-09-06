@@ -1,0 +1,1 @@
+{"key": null, "value": {"event_id": "evt_pedido_17_4886", "event_type": "PEDIDO_ATUALIZADO", "event_ts": "2026-09-06T01:23:32.938667+00:00", "payload": {"pedido_id": 17, "status_anterior": "ENTREGUE", "status_novo": "PENDENTE"}, "source": "event-producer", "correlation_id": "corr_17"}, "partition": 0, "offset": 16, "timestamp": "2026-09-06T01:23:32.951073", "headers": {}}

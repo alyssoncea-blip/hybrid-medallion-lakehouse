@@ -1,0 +1,27 @@
+{
+  "name": "develop-branch-protection",
+  "target": "branch",
+  "enforcement": "active",
+  "conditions": {
+    "ref_name": {
+      "include": ["refs/heads/develop"],
+      "exclude": []
+    }
+  },
+  "rules": [
+    {
+      "type": "required_status_checks",
+      "parameters": {
+        "strict_required_status_checks_policy": true,
+        "do_not_enforce_on_create": true,
+        "required_status_checks": [
+          {"context": "markdown-lint"},
+          {"context": "structure-validate"},
+          {"context": "terraform"},
+          {"context": "terraform-test"},
+          {"context": "dbt-build-local"}
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+{"key": null, "value": {"event_id": "evt_pedido_5_1945", "event_type": "PAGAMENTO_FALHOU", "event_ts": "2026-09-06T01:23:32.938667+00:00", "payload": {"pedido_id": 5, "valor": 1973.33, "metodo_pagamento": "CARTAO", "status": "RECUSADO"}, "source": "event-producer", "correlation_id": "corr_5"}, "partition": 0, "offset": 4, "timestamp": "2026-09-06T01:23:32.942557", "headers": {}}

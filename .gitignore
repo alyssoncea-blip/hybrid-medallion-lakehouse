@@ -81,6 +81,9 @@ data/bronze/**/*.parquet
 data/silver/
 data/gold/
 
+# Streaming queue (local Kafka alternative - test data)
+data/streaming/queue/
+
 # LocalStack
 volumes/
 

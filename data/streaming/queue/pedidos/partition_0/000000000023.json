@@ -1,0 +1,1 @@
+{"key": null, "value": {"event_id": "evt_pedido_4_5938", "event_type": "PEDIDO_ATUALIZADO", "event_ts": "2026-09-06T01:54:23.562820+00:00", "payload": {"pedido_id": 4, "status_anterior": "ENVIADO", "status_novo": "ENTREGUE"}, "source": "event-producer", "correlation_id": "corr_4"}, "partition": 0, "offset": 23, "timestamp": "2026-09-06T01:54:23.564828", "headers": {}}

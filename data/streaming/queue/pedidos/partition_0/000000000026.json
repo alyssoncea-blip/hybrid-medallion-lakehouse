@@ -1,0 +1,1 @@
+{"key": null, "value": {"event_id": "evt_pedido_2_5985", "event_type": "PEDIDO_ATUALIZADO", "event_ts": "2026-09-06T03:11:16.678878+00:00", "payload": {"pedido_id": 2, "status_anterior": "PAGO", "status_novo": "PENDENTE"}, "source": "event-producer", "correlation_id": "corr_2"}, "partition": 0, "offset": 26, "timestamp": "2026-09-06T03:11:16.678878", "headers": {}}

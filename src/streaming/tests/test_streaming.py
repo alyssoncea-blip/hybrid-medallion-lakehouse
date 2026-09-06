@@ -7,7 +7,6 @@ Run: pytest src/streaming/tests/ -v
 import pytest
 import tempfile
 import shutil
-from pathlib import Path
 from datetime import datetime, timezone
 
 from src.streaming.connectors.file_queue import FileQueue, Message

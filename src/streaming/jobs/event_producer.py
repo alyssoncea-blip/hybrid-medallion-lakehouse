@@ -5,17 +5,15 @@ Generates synthetic events and publishes them to the file queue.
 Can run continuously or in bursts.
 """
 
-import os
 import random
 import time
 import argparse
 import signal
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from typing import List, Optional
 
-from src.streaming.connectors.file_queue import FileQueue
-from src.streaming.schemas.events import PedidoEvent, ClienteEvent, ProdutoEvent
+from src.streaming.connectors.file_queue import FileQueue, Message
 
 logging.basicConfig(
     level=logging.INFO,
@@ -62,8 +60,6 @@ class EventProducer:
             "PEDIDO_CRIADO", "PEDIDO_ATUALIZADO", "PEDIDO_CANCELADO",
             "PAGAMENTO_RECEBIDO", "PAGAMENTO_FALHOU"
         ])
-        
-        now = datetime.now(timezone.utc)
         
         if event_type == "PEDIDO_CRIADO":
             payload = {
@@ -163,7 +159,7 @@ class EventProducer:
         topic: str,
         count: int,
         start_id: int = 1,
-    ) -> List[dict]:
+    ) -> List[Message]:
         """Produce a batch of events to a topic."""
         events = []
         
@@ -231,7 +227,7 @@ def main():
     args = parser.parse_args()
     
     if args.dry_run:
-        print(f"Config:")
+        print("Config:")
         print(f"  queue_root: {args.queue_root}")
         print(f"  topics: {args.topics}")
         print(f"  batch_size: {args.batch_size}")

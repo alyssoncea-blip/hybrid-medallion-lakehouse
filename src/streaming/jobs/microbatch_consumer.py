@@ -5,8 +5,6 @@ Reads events from the file-based queue and writes micro-batches
 to the Bronze layer as Parquet files, partitioned by date/hour.
 """
 
-import os
-import json
 import time
 import signal
 import logging
@@ -21,7 +19,6 @@ import pyarrow.parquet as pq
 import pyarrow.compute as pc
 
 from src.streaming.connectors.file_queue import FileQueue, Message
-from src.streaming.schemas.events import PedidoEvent, ClienteEvent, ProdutoEvent, Event
 
 logging.basicConfig(
     level=logging.INFO,
@@ -299,7 +296,7 @@ def main():
     args = parser.parse_args()
     
     if args.dry_run:
-        print(f"Config:")
+        print("Config:")
         print(f"  queue_root: {args.queue_root}")
         print(f"  bronze_root: {args.bronze_root}")
         print(f"  topics: {args.topics}")

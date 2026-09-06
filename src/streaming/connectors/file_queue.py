@@ -5,13 +5,10 @@ Simulates a Kafka-like message queue using the filesystem.
 Supports partitioning, consumer groups, and offset management.
 """
 
-import os
 import json
 import time
-import uuid
-import shutil
 from pathlib import Path
-from typing import Iterator, Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any
 from dataclasses import dataclass, field
 from datetime import datetime
 from contextlib import contextmanager
@@ -211,7 +208,7 @@ class FileQueue:
         if not partition_dir.exists():
             return []
         
-        messages = []
+        messages: List[Message] = []
         files = sorted(partition_dir.glob("*.json"))
         
         for file_path in files:
@@ -319,8 +316,6 @@ class FileQueue:
         offsets = {}
         for p in partitions:
             offsets[p] = self.get_committed_offset(group_id, topic, p)
-        
-        message_count = 0
         
         try:
             yield ConsumerIterator(self, topic, group_id, partitions, offsets, auto_commit, commit_interval)

@@ -1,0 +1,1 @@
+{"key": null, "value": {"event_id": "evt_pedido_3_5760", "event_type": "PAGAMENTO_RECEBIDO", "event_ts": "2026-09-06T03:11:16.678878+00:00", "payload": {"pedido_id": 3, "valor": 404.77, "metodo_pagamento": "PIX", "status": "ESTORNADO"}, "source": "event-producer", "correlation_id": "corr_3"}, "partition": 0, "offset": 27, "timestamp": "2026-09-06T03:11:16.678878", "headers": {}}

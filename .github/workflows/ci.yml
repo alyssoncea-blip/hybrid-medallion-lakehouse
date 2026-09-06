@@ -30,24 +30,15 @@ jobs:
   mermaid-render:
     name: Mermaid Diagram Validation
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-      - name: Debug environment
-        run: |
-          pwd
-          ls -la
-          ls -la scripts/
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Debug node/npm
-        run: |
-          node --version
-          npm --version
-          npx --version
+      - name: Install mermaid-cli globally
+        run: npm install -g @mermaid-js/mermaid-cli@10.9.1
       - run: npm run render:mermaid
 
   structure-validate:
@@ -150,21 +141,14 @@ jobs:
   python-lint:
     name: Python Lint (ruff + mypy)
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
-      - name: Debug environment
-        run: |
-          pwd
-          ls -la
-          ls -la src/dbt/
-          ls -la scripts/
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - run: pip install ruff mypy types-PyYAML
-      - run: ruff check src/dbt scripts
-      - run: mypy --ignore-missing-imports src/dbt
+      - run: ruff check src/dbt src/streaming scripts
+      - run: mypy --ignore-missing-imports src/dbt src/streaming scripts
 
   all-checks-passed:
     name: All Checks Passed

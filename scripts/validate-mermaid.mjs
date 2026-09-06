@@ -45,6 +45,10 @@ async function main() {
   const files = [];
   for await (const f of walk(root)) files.push(f);
   console.log(`Found ${files.length} markdown files`);
+  
+  // Use local mermaid-cli binary
+  const mmdcPath = path.join(__dirname, "..", "node_modules", ".bin", "mmdc");
+  
   let total = 0;
   let failed = 0;
   for (const file of files) {
@@ -56,7 +60,7 @@ async function main() {
       const out = `${tmp}.svg`;
       await fs.writeFile(tmp, block, "utf8");
       try {
-        await exec("npx", ["mmdc", "-i", tmp, "-o", out, "-q"], { shell: true });
+        await exec(mmdcPath, ["-i", tmp, "-o", out, "-q"], { shell: true });
         console.log(`  OK  ${path.relative(root, file)} [block ${i + 1}]`);
       } catch (err) {
         failed++;

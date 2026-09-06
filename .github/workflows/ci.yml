@@ -37,9 +37,10 @@ jobs:
           node-version: "20"
           cache: npm
       - run: npm ci --no-audit --no-fund
-      - name: Install mermaid-cli globally
-        run: npm install -g @mermaid-js/mermaid-cli@10.9.1
-      - run: npm run render:mermaid
+      - name: Validate Mermaid diagrams
+        run: |
+          npx --yes @mermaid-js/mermaid-cli@10.9.1 --version
+          npm run render:mermaid
 
   structure-validate:
     name: Repo Structure Validation

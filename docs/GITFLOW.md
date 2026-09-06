@@ -4,7 +4,7 @@ This project follows a simplified **GitFlow** workflow adapted for continuous de
 
 ## Branch Structure
 
-```
+```text
 main ────────────────────────────────────────────▶ (production releases)
   │
   ├── develop ──────────────────────────────────▶ (integration branch)
@@ -29,6 +29,7 @@ All branches are protected via **GitHub Rulesets**:
 | `release/*` | `release-branches-protection` | Same 5 core checks |
 
 All rulesets enforce:
+
 - **Active enforcement** — rules cannot be bypassed
 - **Required status checks** — 5 core CI jobs must pass
 - **Strict policy** — branches must be up to date before merge
@@ -106,6 +107,7 @@ gh pr create --base develop --title "hotfix: critical fix"
 ## CI/CD Integration
 
 The GitHub Actions workflow (`.github/workflows/ci.yml`) runs on:
+
 - **Push to `main`, `develop`, `release/*`** — Full CI pipeline
 - **Pull Requests to `main`, `develop`, `release/*`** — Full CI pipeline
 
@@ -158,7 +160,7 @@ After merging `release/*` → `main`:
 
 Follow **Conventional Commits**:
 
-```
+```text
 <type>(<scope>): <subject>
 
 <body>
@@ -169,7 +171,8 @@ Follow **Conventional Commits**:
 Types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`, `ci`, `build`, `perf`
 
 Example:
-```
+
+```text
 feat(airflow): add dbt orchestration DAG
 
 Add DAG for dbt pipeline orchestration with Airflow.
@@ -187,4 +190,4 @@ Rules are enforced at the **GitHub platform level** via Rulesets:
 - Rulesets cannot be bypassed by regular users
 - Admin bypass requires explicit configuration
 
-View rulesets: https://github.com/alyssoncea-blip/hybrid-medallion-lakehouse/settings/rules
+View rulesets: <https://github.com/alyssoncea-blip/hybrid-medallion-lakehouse/settings/rules>

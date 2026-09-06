@@ -4,17 +4,17 @@ This directory contains a **local-first streaming pipeline** that simulates even
 
 ## Architecture
 
-```
+```text
 ┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐
 │  Producers  │────▶│  File Queue      │────▶│  Micro-batch    │
 │  (Simulated)│     │  (Local Kafka)   │     │  Consumer       │
 └─────────────┘     └──────────────────┘     └─────────────────┘
-                                                          │
-                                                          ▼
-                                                ┌─────────────────┐
-                                                │  Bronze Layer   │
-                                                │  (Parquet)      │
-                                                └─────────────────┘
+                                                           │
+                                                           ▼
+                                                 ┌─────────────────┐
+                                                 │  Bronze Layer   │
+                                                 │  (Parquet)      │
+                                                 └─────────────────┘
 ```
 
 ## Components
@@ -29,18 +29,22 @@ This directory contains a **local-first streaming pipeline** that simulates even
 ## Quick Start
 
 ### 1. Install Dependencies
+
 ```bash
 pip install -r src/streaming/requirements.txt
 ```
 
 ### 2. Start Event Producer (Terminal 1)
+
 ```bash
 # Continuous producer (generates events every 5 seconds)
 python src/streaming/jobs/event_producer.py \
     --topics pedidos clientes produtos \
     --batch-size 50 \
     --interval 5.0
+```
 
+```bash
 # One-shot producer (single batch)
 python src/streaming/jobs/event_producer.py \
     --topics pedidos \
@@ -49,6 +53,7 @@ python src/streaming/jobs/event_producer.py \
 ```
 
 ### 3. Start Micro-batch Consumer (Terminal 2)
+
 ```bash
 python src/streaming/jobs/microbatch_consumer.py \
     --topics pedidos clientes produtos \
@@ -58,6 +63,7 @@ python src/streaming/jobs/microbatch_consumer.py \
 ```
 
 ### 4. Verify Bronze Output
+
 ```bash
 # Check generated Parquet files
 find data/bronze/streaming -name "*.parquet" | head -5
@@ -74,6 +80,7 @@ LIMIT 10;
 The `FileQueue` class provides a **local Kafka alternative** using the filesystem:
 
 ### Features
+
 - **Partitioning** — Configurable partitions (default: 4) for parallelism
 - **Offsets** — Per-partition offsets with consumer group support
 - **Ordering** — Messages within a partition are strictly ordered
@@ -82,7 +89,8 @@ The `FileQueue` class provides a **local Kafka alternative** using the filesyste
 - **Thread-safe** — File locking for concurrent producers/consumers
 
 ### Directory Structure
-```
+
+```text
 data/streaming/queue/
 ├── pedidos/
 │   ├── partition_0/
@@ -102,6 +110,7 @@ data/streaming/queue/
 ## Event Types
 
 ### Pedido Events
+
 ```json
 {
   "event_id": "evt_pedido_123_4567",
@@ -121,6 +130,7 @@ data/streaming/queue/
 ```
 
 ### Supported Event Types
+
 | Topic | Event Types |
 |-------|-------------|
 | `pedidos` | PEDIDO_CRIADO, PEDIDO_ATUALIZADO, PEDIDO_CANCELADO, PAGAMENTO_RECEBIDO, PAGAMENTO_FALHOU |
@@ -137,11 +147,13 @@ data/streaming/queue/
 | `poll_interval_seconds` | 1.0 | Polling interval |
 
 ### Output Partitioning
+
 Bronze files are partitioned by:
+
 - `event_date` (YYYY-MM-DD)
 - `event_hour` (0-23)
 
-```
+```text
 data/bronze/streaming/
 ├── event_date=2026-01-15/
 │   ├── event_hour=10/
@@ -176,6 +188,7 @@ run_streaming_consumer = BashOperator(
 ## Production Considerations
 
 For production, replace `FileQueue` with:
+
 - **Apache Kafka** + `confluent-kafka` Python client
 - **Redpanda** (Kafka-compatible, simpler)
 - **Apache Pulsar**

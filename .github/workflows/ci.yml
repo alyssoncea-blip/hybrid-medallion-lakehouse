@@ -148,8 +148,8 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install "ruff==0.15.12" "mypy==1.19.1" types-PyYAML
-      - run: ruff check src/dbt src/streaming scripts
-      - run: mypy --ignore-missing-imports src/dbt src/streaming scripts
+      - run: ruff check src/streaming scripts
+      - run: mypy --ignore-missing-imports src/streaming scripts
 
   all-checks-passed:
     name: All Checks Passed

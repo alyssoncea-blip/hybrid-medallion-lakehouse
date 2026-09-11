@@ -5,13 +5,14 @@ Defines the contract for events flowing through the streaming pipeline.
 """
 
 from datetime import datetime
-from typing import Optional, Literal
-from pydantic import BaseModel, Field, ConfigDict
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PedidoEvent(BaseModel):
     """Event schema for pedido (order) events."""
-    
+
     model_config = ConfigDict(
         populate_by_name=True,
         json_schema_extra={
@@ -30,11 +31,11 @@ class PedidoEvent(BaseModel):
             }]
         }
     )
-    
+
     event_id: str = Field(..., description="Unique event identifier")
     event_type: Literal[
         "PEDIDO_CRIADO",
-        "PEDIDO_ATUALIZADO", 
+        "PEDIDO_ATUALIZADO",
         "PEDIDO_CANCELADO",
         "PAGAMENTO_RECEBIDO",
         "PAGAMENTO_FALHOU"
@@ -42,14 +43,14 @@ class PedidoEvent(BaseModel):
     event_ts: datetime = Field(..., description="Event timestamp (UTC)")
     payload: dict = Field(..., description="Event payload - varies by event_type")
     source: str = Field(default="streaming-api", description="Event source")
-    correlation_id: Optional[str] = Field(None, description="Correlation ID for tracing")
+    correlation_id: str | None = Field(None, description="Correlation ID for tracing")
 
 
 class ClienteEvent(BaseModel):
     """Event schema for cliente (customer) events."""
-    
+
     model_config = ConfigDict(populate_by_name=True)
-    
+
     event_id: str
     event_type: Literal[
         "CLIENTE_CRIADO",
@@ -59,14 +60,14 @@ class ClienteEvent(BaseModel):
     event_ts: datetime
     payload: dict
     source: str = "streaming-api"
-    correlation_id: Optional[str] = None
+    correlation_id: str | None = None
 
 
 class ProdutoEvent(BaseModel):
     """Event schema for produto (product) events."""
-    
+
     model_config = ConfigDict(populate_by_name=True)
-    
+
     event_id: str
     event_type: Literal[
         "PRODUTO_CRIADO",
@@ -77,7 +78,7 @@ class ProdutoEvent(BaseModel):
     event_ts: datetime
     payload: dict
     source: str = "streaming-api"
-    correlation_id: Optional[str] = None
+    correlation_id: str | None = None
 
 
 # Union of all event types

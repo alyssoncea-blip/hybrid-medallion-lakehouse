@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 scripts/validate_structure.py
 
@@ -20,8 +19,14 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import sys
 from pathlib import Path
+
+try:
+    import yaml  # type: ignore
+except ImportError:
+    yaml = None  # type: ignore[assignment]
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -132,12 +137,7 @@ def check_yaml_files() -> int:
     failures = 0
 
     # Try PyYAML; if not installed, fall back to a permissive regex check
-    try:
-        import yaml  # type: ignore
-
-        parser = yaml.safe_load
-    except ImportError:
-        parser = None
+    parser = yaml.safe_load if yaml is not None else None
 
     for ext in ("*.yml", "*.yaml"):
         for f in REPO_ROOT.rglob(ext):
@@ -145,7 +145,7 @@ def check_yaml_files() -> int:
             if any(part in f.parts for part in ("node_modules", ".terraform", "dbt_packages", "target")):
                 continue
             try:
-                if parser:
+                if parser is not None:
                     parser(f.read_text(encoding="utf-8"))
                     ok(f"YAML parses: {f.relative_to(REPO_ROOT)}")
                 else:
@@ -156,7 +156,7 @@ def check_yaml_files() -> int:
                         failures += 1
                     else:
                         ok(f"YAML structure OK (fallback): {f.relative_to(REPO_ROOT)}")
-            except Exception as exc:
+            except (OSError, ValueError) as exc:
                 fail(f"YAML parse error in {f.relative_to(REPO_ROOT)}: {exc}")
                 failures += 1
 
@@ -166,7 +166,7 @@ def check_yaml_files() -> int:
         try:
             json.loads(f.read_text(encoding="utf-8"))
             ok(f"JSON parses: {f.relative_to(REPO_ROOT)}")
-        except Exception as exc:
+        except (OSError, ValueError) as exc:
             fail(f"JSON parse error in {f.relative_to(REPO_ROOT)}: {exc}")
             failures += 1
     return failures
@@ -262,7 +262,6 @@ def check_tests_exist() -> int:
 def check_commit_messages() -> int:
     banner("Conventional Commits (git log)")
     failures = 0
-    import subprocess
 
     try:
         result = subprocess.run(

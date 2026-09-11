@@ -10,12 +10,12 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import { execFile } from "node:child_process";
+import { exec } from "node:child_process";
 import { promisify } from "node:util";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
 
-const exec = promisify(execFile);
+const execAsync = promisify(exec);
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const root = path.resolve(__dirname, "..");
@@ -45,10 +45,23 @@ async function main() {
   const files = [];
   for await (const f of walk(root)) files.push(f);
   console.log(`Found ${files.length} markdown files`);
-  
-  // Use npx with explicit version for reliability in CI
-  const mmdcCmd = "npx";
-  const mmdcArgs = ["--yes", "@mermaid-js/mermaid-cli@10.9.1", "mmdc"];
+
+  // Puppeteer needs --no-sandbox on GitHub Actions (running as root).
+  // The config file is committed at scripts/puppeteer-config.json.
+  const puppeteerConfig = path.join(__dirname, "puppeteer-config.json");
+
+  // Prefer the local mmdc binary (npm ci installs it); fall back to npx
+  // with an explicit version. Built as a shell string via exec() so
+  // Windows .cmd shims (mmdc.cmd / npx.cmd) resolve correctly.
+  const quote = (s) => `"${String(s).replace(/"/g, '\\"')}"`;
+  const localMmdc = path.join(__dirname, "..", "node_modules", ".bin", process.platform === "win32" ? "mmdc.cmd" : "mmdc");
+  let mmdcPrefix;
+  try {
+    await fs.access(localMmdc);
+    mmdcPrefix = `${quote(localMmdc)} -p ${quote(puppeteerConfig)}`;
+  } catch {
+    mmdcPrefix = `npx --yes -p "@mermaid-js/mermaid-cli@10.9.1" mmdc -p ${quote(puppeteerConfig)}`;
+  }
   
   let total = 0;
   let failed = 0;
@@ -61,12 +74,12 @@ async function main() {
       const out = `${tmp}.svg`;
       await fs.writeFile(tmp, block, "utf8");
       try {
-        await exec(mmdcCmd, [...mmdcArgs, "-i", tmp, "-o", out, "-q"], { shell: true });
+        await execAsync(`${mmdcPrefix} -i ${quote(tmp)} -o ${quote(out)} -q`);
         console.log(`  OK  ${path.relative(root, file)} [block ${i + 1}]`);
       } catch (err) {
         failed++;
         console.error(`  FAIL ${path.relative(root, file)} [block ${i + 1}]`);
-        console.error(err.stderr || err.message);
+        console.error(err.stderr || err.stdout || err.message);
       } finally {
         await fs.unlink(tmp).catch(() => {});
         await fs.unlink(out).catch(() => {});

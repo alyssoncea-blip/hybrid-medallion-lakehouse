@@ -1,11 +1,12 @@
+[tool.ruff]
 line-length = 100
-target-version = "py310"
+target-version = "py311"
 extend-exclude = ["dbt_packages", "target", "logs"]
 
-[lint]
+[tool.ruff.lint]
 select = [
     "E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RUF",
-    "PT", "RET", "TID", "ARG", "PL",
+    "PT", "RET", "TID", "ARG", "PL", "DTZ", "BLE", "S110",
 ]
 ignore = [
     "E501",  # line too long (handled by formatter)
@@ -13,12 +14,12 @@ ignore = [
     "PLR0913", # too many arguments
 ]
 
-[lint.per-file-ignores]
-"**/tests/**" = ["S101", "ARG"]
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["S101", "ARG", "PLR2004"]
 "**/snapshots/**" = ["ARG001"]
 "scripts/*" = ["T201", "INP001"]
 
-[format]
+[tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
 docstring-code-format = true

@@ -5,13 +5,12 @@ Generates synthetic events and publishes them to the file queue.
 Can run continuously or in bursts.
 """
 
-import random
-import time
 import argparse
-import signal
 import logging
-from datetime import datetime, timezone
-from typing import List, Optional
+import random
+import signal
+import time
+from datetime import UTC, datetime
 
 from src.streaming.connectors.file_queue import FileQueue, Message
 
@@ -39,7 +38,7 @@ STATUS_PAGAMENTO = ["APROVADO", "RECUSADO", "PENDENTE", "ESTORNADO"]
 
 class EventProducer:
     """Produces synthetic events to the file queue."""
-    
+
     def __init__(
         self,
         queue_root: str = "data/streaming/queue",
@@ -49,18 +48,18 @@ class EventProducer:
         self._shutdown = False
         signal.signal(signal.SIGINT, self._signal_handler)
         signal.signal(signal.SIGTERM, self._signal_handler)
-    
-    def _signal_handler(self, signum, frame):
+
+    def _signal_handler(self, signum, _frame):
         logger.info(f"Received signal {signum}, shutting down...")
         self._shutdown = True
-    
+
     def generate_pedido(self, pedido_id: int) -> dict:
         """Generate a synthetic pedido event."""
         event_type = random.choice([
             "PEDIDO_CRIADO", "PEDIDO_ATUALIZADO", "PEDIDO_CANCELADO",
             "PAGAMENTO_RECEBIDO", "PAGAMENTO_FALHOU"
         ])
-        
+
         if event_type == "PEDIDO_CRIADO":
             payload = {
                 "pedido_id": pedido_id,
@@ -83,22 +82,22 @@ class EventProducer:
                 "metodo_pagamento": random.choice(["CARTAO", "PIX", "BOLETO", "TRANSFERENCIA"]),
                 "status": random.choice(STATUS_PAGAMENTO),
             }
-        
+
         return {
             "event_id": f"evt_pedido_{pedido_id}_{random.randint(1000, 9999)}",
             "event_type": event_type,
-            "event_ts": datetime.now(timezone.utc).isoformat(),
+            "event_ts": datetime.now(UTC).isoformat(),
             "payload": payload,
             "source": "event-producer",
             "correlation_id": f"corr_{pedido_id}",
         }
-    
+
     def generate_cliente(self, cliente_id: int) -> dict:
         """Generate a synthetic cliente event."""
         event_type = random.choice([
             "CLIENTE_CRIADO", "CLIENTE_ATUALIZADO", "CLIENTE_DESATIVADO"
         ])
-        
+
         payload = {
             "cliente_id": cliente_id,
             "nome": f"Cliente {cliente_id}",
@@ -106,28 +105,28 @@ class EventProducer:
             "cpf": f"{random.randint(10000000000, 99999999999):011d}",
             "ativo": event_type != "CLIENTE_DESATIVADO",
         }
-        
+
         if event_type == "CLIENTE_ATUALIZADO":
             payload["campos_alterados"] = random.choice([
                 ["email"], ["telefone"], ["endereco"], ["email", "telefone"]
             ])
-        
+
         return {
             "event_id": f"evt_cliente_{cliente_id}_{random.randint(1000, 9999)}",
             "event_type": event_type,
-            "event_ts": datetime.now(timezone.utc).isoformat(),
+            "event_ts": datetime.now(UTC).isoformat(),
             "payload": payload,
             "source": "event-producer",
             "correlation_id": f"corr_cliente_{cliente_id}",
         }
-    
+
     def generate_produto(self, produto_id: int) -> dict:
         """Generate a synthetic produto event."""
         event_type = random.choice([
-            "PRODUTO_CRIADO", "PRODUTO_ATUALIZADO", 
+            "PRODUTO_CRIADO", "PRODUTO_ATUALIZADO",
             "PRODUTO_DESATIVADO", "ESTOQUE_ATUALIZADO"
         ])
-        
+
         payload = {
             "produto_id": produto_id,
             "sku_produto": f"SKU-{produto_id:03d}",
@@ -136,7 +135,7 @@ class EventProducer:
             "fabricante": random.choice(FABRICANTES),
             "preco_unitario": round(random.uniform(10.0, 5000.0), 2),
         }
-        
+
         if event_type == "ESTOQUE_ATUALIZADO":
             payload["quantidade_anterior"] = random.randint(0, 500)
             payload["quantidade_nova"] = random.randint(0, 500)
@@ -144,25 +143,25 @@ class EventProducer:
             payload["campos_alterados"] = random.choice([
                 ["preco_unitario"], ["categoria"], ["preco_unitario", "categoria"]
             ])
-        
+
         return {
             "event_id": f"evt_produto_{produto_id}_{random.randint(1000, 9999)}",
             "event_type": event_type,
-            "event_ts": datetime.now(timezone.utc).isoformat(),
+            "event_ts": datetime.now(UTC).isoformat(),
             "payload": payload,
             "source": "event-producer",
             "correlation_id": f"corr_produto_{produto_id}",
         }
-    
+
     def produce_batch(
         self,
         topic: str,
         count: int,
         start_id: int = 1,
-    ) -> List[Message]:
+    ) -> list[Message]:
         """Produce a batch of events to a topic."""
         events = []
-        
+
         if topic == "pedidos":
             for i in range(count):
                 events.append(self.generate_pedido(start_id + i))
@@ -174,42 +173,44 @@ class EventProducer:
                 events.append(self.generate_produto(start_id + i))
         else:
             raise ValueError(f"Unknown topic: {topic}")
-        
+
         produced = self.queue.produce_batch(topic, events)
         logger.info(f"Produced {len(produced)} events to '{topic}'")
         return produced
-    
+
     def run_continuous(
         self,
-        topics: List[str] = ["pedidos", "clientes", "produtos"],
+        topics: list[str] | None = None,
         events_per_batch: int = 10,
         interval_seconds: float = 5.0,
-        max_events: Optional[int] = None,
+        max_events: int | None = None,
     ):
         """Run producer continuously, generating events at regular intervals."""
+        if topics is None:
+            topics = ["pedidos", "clientes", "produtos"]
         logger.info(f"Starting continuous producer for topics: {topics}")
         logger.info(f"Batch size: {events_per_batch}, interval: {interval_seconds}s")
-        
-        counters = {topic: 1 for topic in topics}
+
+        counters = dict.fromkeys(topics, 1)
         total_produced = 0
-        
+
         while not self._shutdown:
             try:
                 for topic in topics:
                     produced = self.produce_batch(topic, events_per_batch, counters[topic])
                     counters[topic] += events_per_batch
                     total_produced += len(produced)
-                    
+
                     if max_events and total_produced >= max_events:
                         logger.info(f"Reached max events ({max_events}), stopping")
                         return
-                
+
                 time.sleep(interval_seconds)
-                
-            except Exception as e:
+
+            except Exception as e:  # noqa: BLE001 - continuous loop must not crash
                 logger.error(f"Error in producer loop: {e}")
                 time.sleep(1.0)
-        
+
         logger.info(f"Producer stopped. Total events: {total_produced}")
 
 
@@ -223,9 +224,9 @@ def main():
     parser.add_argument("--partitions", type=int, default=4, help="Number of partitions")
     parser.add_argument("--dry-run", action="store_true", help="Print config and exit")
     parser.add_argument("--one-shot", action="store_true", help="Produce one batch and exit")
-    
+
     args = parser.parse_args()
-    
+
     if args.dry_run:
         print("Config:")
         print(f"  queue_root: {args.queue_root}")
@@ -236,9 +237,9 @@ def main():
         print(f"  partitions: {args.partitions}")
         print(f"  one_shot: {args.one_shot}")
         return
-    
+
     producer = EventProducer(args.queue_root, num_partitions=args.partitions)
-    
+
     if args.one_shot:
         for topic in args.topics:
             producer.produce_batch(topic, args.batch_size)

@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import argparse
 import random
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 import pyarrow as pa
@@ -86,7 +86,7 @@ def write_parquet_partitioned(table: pa.Table, base_dir: Path, rows_per_file: in
     for start in range(0, total, rows_per_file):
         end = min(start + rows_per_file, total)
         chunk = table.slice(start, end - start)
-        ts = datetime.utcnow().strftime("%Y%m%dT%H%M%S")
+        ts = datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
         out = base_dir / f"part-{ts}-{files:04d}.parquet"
         pq.write_table(chunk, out)
         files += 1

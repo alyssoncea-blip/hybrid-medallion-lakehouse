@@ -19,10 +19,10 @@ jobs:
     name: Markdown Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "24"
           cache: npm
       - run: npm ci --no-audit --no-fund
       - run: npm run lint:md
@@ -31,10 +31,10 @@ jobs:
     name: Mermaid Diagram Validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
-          node-version: "20"
+          node-version: "24"
           cache: npm
       - run: npm ci --no-audit --no-fund
       - name: Validate Mermaid diagrams
@@ -46,8 +46,8 @@ jobs:
     name: Repo Structure Validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - run: python scripts/validate_structure.py
@@ -64,7 +64,7 @@ jobs:
           - stg
           - prd
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.9.0"
@@ -91,7 +91,7 @@ jobs:
     name: Terraform Tests (modules)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.9.0"
@@ -110,8 +110,8 @@ jobs:
     name: "dbt build (local / DuckDB)"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: Install dbt + DuckDB + pyarrow
@@ -132,7 +132,7 @@ jobs:
           DBT_DUCKDB_PATH: /tmp/lakehouse.duckdb
       - name: Upload DuckDB artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: lakehouse-duckdb
           path: /tmp/lakehouse.duckdb
@@ -143,11 +143,11 @@ jobs:
     name: Python Lint (ruff + mypy)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.11"
-      - run: pip install ruff mypy types-PyYAML
+      - run: pip install "ruff==0.15.12" "mypy==1.19.1" types-PyYAML
       - run: ruff check src/dbt src/streaming scripts
       - run: mypy --ignore-missing-imports src/dbt src/streaming scripts
 

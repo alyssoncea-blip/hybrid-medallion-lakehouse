@@ -76,8 +76,8 @@ lint-tf-fix: ## Auto-format Terraform code.
 
 .PHONY: lint-py
 lint-py: ## Lint Python (ruff + mypy).
-	ruff check $(DBT_DIR) src/snowpark scripts 2>/dev/null || true
-	mypy --ignore-missing-imports $(DBT_DIR) src/snowpark 2>/dev/null || true
+	ruff check src/streaming scripts
+	mypy --ignore-missing-imports src/streaming scripts
 
 # -------- Validate ---------------------------------------------------------
 

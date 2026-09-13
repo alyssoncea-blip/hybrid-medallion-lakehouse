@@ -180,7 +180,10 @@ jobs:
             echo "  $check: $result"
           done
           echo ""
-          echo "All required checks passed."
+          if [ "$NEEDS_MARKDOWN_LINT_RESULT" != "success" ] || [ "$NEEDS_STRUCTURE_VALIDATE_RESULT" != "success" ] || [ "$NEEDS_TERRAFORM_RESULT" != "success" ] || [ "$NEEDS_TERRAFORM_TEST_RESULT" != "success" ] || [ "$NEEDS_DBT_BUILD_LOCAL_RESULT" != "success" ]; then
+            echo "Required checks failed."
+            exit 1
+          fi
           echo "All required checks passed."
         env:
           NEEDS_MARKDOWN_LINT_RESULT: ${{ needs.markdown-lint.result }}

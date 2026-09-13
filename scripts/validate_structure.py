@@ -63,6 +63,9 @@ REQUIRED_FILES = [
     "src/terraform/modules/snowflake/tests/warehouses.tftest.hcl",
     "src/terraform/modules/s3/buckets.tf",
     "src/terraform/modules/s3/tests/buckets.tftest.hcl",
+    "src/dbt/macros/compat/ts_now.sql",
+    "src/dbt/macros/compat/ym_format.sql",
+    "src/dbt/macros/compat/bronze_source.sql",
 ]
 
 
@@ -259,6 +262,18 @@ def check_tests_exist() -> int:
     return failures
 
 
+def check_no_stray_target_type() -> int:
+    banner("No stray target.type in models/")
+    failures = 0
+    for f in (REPO_ROOT / "src" / "dbt" / "models").rglob("*.sql"):
+        if "target.type" in f.read_text(encoding="utf-8"):
+            fail(f"Stray target.type in {f.relative_to(REPO_ROOT)} (move to macros/compat)")
+            failures += 1
+    if failures == 0:
+        ok("No stray target.type in models/")
+    return failures
+
+
 def check_commit_messages() -> int:
     banner("Conventional Commits (git log)")
     failures = 0
@@ -302,6 +317,7 @@ def main() -> int:
     total += check_mermaid_blocks()
     total += check_dbt_models_have_yml()
     total += check_tests_exist()
+    total += check_no_stray_target_type()
     total += check_commit_messages()
 
     banner("Summary")

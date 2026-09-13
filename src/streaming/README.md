@@ -1,3 +1,5 @@
+> **Status: 🔭 simulation Alvo** — FileQueue simula Kafka localmente; eleger 1 conector real (Snowpipe/Airbyte) ou aposentar.
+
 # Streaming Ingestion for Hybrid Medallion Lakehouse
 
 This directory contains a **local-first streaming pipeline** that simulates event ingestion from Kafka-like sources into the Bronze layer using a file-based message queue.

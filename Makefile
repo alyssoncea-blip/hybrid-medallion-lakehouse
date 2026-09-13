@@ -76,8 +76,9 @@ lint-tf-fix: ## Auto-format Terraform code.
 
 .PHONY: lint-py
 lint-py: ## Lint Python (ruff + mypy).
-	ruff check src/streaming scripts
-	mypy --ignore-missing-imports src/streaming scripts
+	# snowpark kept OUT: 78 pre-existing errors, no owner (see Task 3 review)
+	ruff check src/streaming src/airflow scripts
+	mypy --ignore-missing-imports src/streaming src/airflow scripts
 
 # -------- Validate ---------------------------------------------------------
 

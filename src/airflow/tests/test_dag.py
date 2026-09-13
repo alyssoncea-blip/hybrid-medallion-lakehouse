@@ -20,7 +20,7 @@ except ImportError:
 # Add dags directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "dags"))
 
-from hybrid_medallion_lakehouse_dbt import dag  # noqa: E402
+from hybrid_medallion_lakehouse_dbt import dag
 
 
 def test_dag_loaded():
@@ -78,23 +78,23 @@ def test_task_count():
 def test_task_dependencies():
     """Test task dependencies are correct."""
     task_map = {task.task_id: task for task in dag.tasks}
-    
+
     # start -> validate_profile, print_version
     assert task_map["start"].downstream_task_ids == {"validate_dbt_profile", "print_dbt_version"}
-    
+
     # validate_profile, print_version -> dbt_deps
     assert task_map["validate_dbt_profile"].downstream_task_ids == {"dbt_deps"}
     assert task_map["print_dbt_version"].downstream_task_ids == {"dbt_deps"}
-    
+
     # dbt_deps -> dbt_build -> dbt_test -> dbt_docs
     assert task_map["dbt_deps"].downstream_task_ids == {"dbt_build"}
     assert task_map["dbt_build"].downstream_task_ids == {"dbt_test"}
     assert task_map["dbt_test"].downstream_task_ids == {"dbt_docs_generate"}
-    
+
     # dbt_docs, dbt_source_freshness -> end
     assert task_map["dbt_docs_generate"].downstream_task_ids == {"dbt_source_freshness"}
     assert task_map["dbt_source_freshness"].downstream_task_ids == {"end"}
-    
+
     # end has no downstream
     assert task_map["end"].downstream_task_ids == set()
 
@@ -102,7 +102,7 @@ def test_task_dependencies():
 def test_dbt_tasks_use_correct_env():
     """Test dbt tasks have required environment variables."""
     task_map = {task.task_id: task for task in dag.tasks}
-    
+
     for task_id in ["dbt_deps", "dbt_build", "dbt_test", "dbt_docs_generate", "dbt_source_freshness"]:
         task = task_map[task_id]
         assert isinstance(task, __import__("airflow.operators.bash", fromlist=["BashOperator"]).BashOperator)

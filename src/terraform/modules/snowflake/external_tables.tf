@@ -4,7 +4,7 @@
 # Designed now, validated/tested with mock_provider only. Requires
 # `terraform apply` with S3 + Snowflake creds (out of scope, zero-cost here).
 #
-# NOTE (provider v0.100 deviation from plan sketch): `snowflake_external_table`
+# NOTE (provider ~> 0.92 (resolves to v0.100.0) deviation from plan sketch): `snowflake_external_table`
 # requires `file_format`, `location` (not `stage`) and >=1 `column` block.
 # `location` points at the stage above; columns map Parquet VALUE fields.
 # `variable.environment` is NOT redeclared here (already in versions.tf).

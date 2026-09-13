@@ -3,12 +3,7 @@
     tags=['bronze', 'vendas', 'raw']
 ) }}
 
-{#
-  Local target (DuckDB):  lê Parquet direto do disco via read_parquet()
-  Snowflake target:       lê external table sobre S3 (criada pelo Terraform)
-
-  Variável local_bronze_path é configurada em dbt_project.yml.
-#}
+{# Bronze staging via {{ bronze_source() }} compat macro (local Parquet / Snowflake external). #}
 
 with source as (
     select

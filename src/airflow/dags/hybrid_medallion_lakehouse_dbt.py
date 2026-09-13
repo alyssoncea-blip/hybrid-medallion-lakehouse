@@ -47,8 +47,8 @@ DEFAULT_ARGS = {
 # Jinja-templated env (rendered at task runtime, not DAG parse time).
 # Uses Airflow Variables with defaults documented in the module docstring.
 DBT_ENV = {
-    "DBT_PROFILES_DIR": "{{ var.value.dbt_profiles_dir }}",
-    "DBT_TARGET": "{{ var.value.dbt_target }}",
+    "DBT_PROFILES_DIR": "{{ var.value.dbt_profiles_dir | default('/opt/airflow/.dbt', true) }}",
+    "DBT_TARGET": "{{ var.value.dbt_target | default('local', true) }}",
     # DuckDB path for local target
     "DBT_DUCKDB_PATH": "/opt/airflow/data/lakehouse.duckdb",
 }
@@ -121,7 +121,7 @@ with DAG(
     with TaskGroup(group_id="dbt_pipeline") as dbt_pipeline:
         dbt_deps = BashOperator(
             task_id="dbt_deps",
-            bash_command="cd {{ var.value.dbt_project_dir }} && dbt deps --no-version-check",
+            bash_command="cd {{ var.value.dbt_project_dir | default('/opt/airflow/dbt', true) }} && dbt deps --no-version-check",
             env=DBT_ENV,
             retries=2,
         )
@@ -129,8 +129,8 @@ with DAG(
         dbt_build = BashOperator(
             task_id="dbt_build",
             bash_command=(
-                "cd {{ var.value.dbt_project_dir }} && "
-                "dbt build --target {{ var.value.dbt_target }} "
+                "cd {{ var.value.dbt_project_dir | default('/opt/airflow/dbt', true) }} && "
+                "dbt build --target {{ var.value.dbt_target | default('local', true) }} "
                 "--select state:modified+ --no-version-check"
             ),
             env=DBT_ENV,
@@ -140,8 +140,8 @@ with DAG(
         dbt_test = BashOperator(
             task_id="dbt_test",
             bash_command=(
-                "cd {{ var.value.dbt_project_dir }} && "
-                "dbt test --target {{ var.value.dbt_target }} --no-version-check"
+                "cd {{ var.value.dbt_project_dir | default('/opt/airflow/dbt', true) }} && "
+                "dbt test --target {{ var.value.dbt_target | default('local', true) }} --no-version-check"
             ),
             env=DBT_ENV,
             execution_timeout=timedelta(hours=1),
@@ -150,8 +150,8 @@ with DAG(
         dbt_docs = BashOperator(
             task_id="dbt_docs_generate",
             bash_command=(
-                "cd {{ var.value.dbt_project_dir }} && "
-                "dbt docs generate --target {{ var.value.dbt_target }} --no-version-check"
+                "cd {{ var.value.dbt_project_dir | default('/opt/airflow/dbt', true) }} && "
+                "dbt docs generate --target {{ var.value.dbt_target | default('local', true) }} --no-version-check"
             ),
             env=DBT_ENV,
             retries=0,  # docs generation is optional, don't fail pipeline
@@ -164,8 +164,8 @@ with DAG(
     dbt_source_freshness = BashOperator(
         task_id="dbt_source_freshness",
         bash_command=(
-            "cd {{ var.value.dbt_project_dir }} && "
-            "dbt source freshness --target {{ var.value.dbt_target }} --no-version-check"
+            "cd {{ var.value.dbt_project_dir | default('/opt/airflow/dbt', true) }} && "
+            "dbt source freshness --target {{ var.value.dbt_target | default('local', true) }} --no-version-check"
         ),
         env=DBT_ENV,
         retries=1,

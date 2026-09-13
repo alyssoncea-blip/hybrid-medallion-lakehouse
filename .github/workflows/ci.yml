@@ -131,8 +131,7 @@ jobs:
         env:
           DBT_DUCKDB_PATH: /tmp/lakehouse.duckdb
       - name: dbt source freshness (local)
-        # `|| true` allowed here only: DuckDB source freshness relies on file mtime
-        # and warns without loaded_at_field until Task 6 wires strict freshness.
+        # DuckDB freshness: warn-only until source-level timestamp exists (see Task 6 review); strict on Snowflake targets.
         run: cd src/dbt && dbt source freshness --target local --no-version-check || true
         env:
           DBT_DUCKDB_PATH: /tmp/lakehouse.duckdb

@@ -1,5 +1,6 @@
 # Hybrid Medallion Improvements — Design
 
+{% raw %}
 **Date:** 2026-09-13
 **Status:** Approved
 **Scope:** Full P0-P2, zero cloud cost, Snowflake-ready
@@ -57,3 +58,5 @@ Harden CI to fail for real: revert `always pass`, remove `|| true`, lint covers 
 
 Gate P0→P1: CI green with real failures, zero `if target.type` outside macros, docs badged.
 Gate P1→P2: `dbt build --target local` passes + `terraform plan` clean on 4 envs without secrets.
+
+{% endraw %}

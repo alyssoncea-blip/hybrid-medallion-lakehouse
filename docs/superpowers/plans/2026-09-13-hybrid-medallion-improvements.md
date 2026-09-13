@@ -1,5 +1,6 @@
 # Hybrid Medallion Improvements Implementation Plan
 
+{% raw %}
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Harden PoC to Snowflake-ready with zero cloud cost (macros dispatch, real CI gate, honest docs, Bronze/Silver/Gold ready).
@@ -609,3 +610,5 @@ git commit -m "fix(airflow): lazy vars, slim dbt build, label simulation"
 1. **Spec coverage:** Sec 2 macros → Task 1-2; Sec 3 components/TF → Task 5-6; Sec 4 data flow → Task 2+5+6; Sec 5 CI/observability → Task 3+5; Sec 6 tests → each Task Step 4; Sec 7 P0→P1→P2 gates → Task order = P0 (1-4) then P1 (5-6) then P2 (7). No gaps.
 2. **Placeholder scan:** no TBD/TODO/`|| true` (except documented freshness `|| true` with reason + strict follow-up in Task 6); all file paths exact; all code blocks complete.
 3. **Type consistency:** macro names `ts_now`, `ym_format(date_col)`, `bronze_source(table_name)` identical across Task 1 producers and Task 2/5 consumers; TF var `environment` reused; Airflow Jinja `var.value.dbt_*` consistent.
+
+{% endraw %}

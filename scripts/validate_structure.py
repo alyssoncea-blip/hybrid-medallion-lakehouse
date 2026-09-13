@@ -298,6 +298,12 @@ def check_commit_messages() -> int:
     for line in result.stdout.splitlines():
         if not line.strip():
             continue
+        if line.startswith("Merge "):
+            # Ephemeral merge commit created by actions/checkout on
+            # pull_request events (Merge <head> into <base>) — not authored
+            # code, skip instead of failing the gate.
+            ok(f"Skipping merge commit: {line[:60]}")
+            continue
         m = pattern.match(line)
         if not m or m.group("type") not in allowed:
             fail(f"Non-conventional commit: {line}")

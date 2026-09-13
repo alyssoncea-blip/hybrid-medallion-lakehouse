@@ -40,12 +40,14 @@
 ### Task 1: Compat macros (single ownership of branching)
 
 **Files:**
+
 - Create: `src/dbt/macros/compat/ts_now.sql`
 - Create: `src/dbt/macros/compat/ym_format.sql`
 - Create: `src/dbt/macros/compat/bronze_source.sql`
 - Test: `scripts/validate_structure.py` (extended in Task 3, manual grep here)
 
 **Interfaces:**
+
 - Consumes: `target.type` (`duckdb` vs `snowflake`), `var('local_bronze_path')`, `source('bronze_raw', ...)`
 - Produces: `ts_now()` → SQL string; `ym_format(date_col)` → SQL string; `bronze_source('pedidos_vendas')` → relation SQL. Task 2 consumes exact names.
 
@@ -114,6 +116,7 @@ git commit -m "feat(dbt): add compat macros for dual-target"
 ### Task 2: Refactor 4 models to use compat (remove stray branching)
 
 **Files:**
+
 - Modify: `src/dbt/models/bronze/stg_vendas__pedidos.sql:13-26`
 - Modify: `src/dbt/models/bronze/stg_cliente__cadastro.sql:6-17`
 - Modify: `src/dbt/models/silver/slv_vendas__pedidos.sql:26-27`
@@ -121,6 +124,7 @@ git commit -m "feat(dbt): add compat macros for dual-target"
 - Test: local `dbt build`
 
 **Interfaces:**
+
 - Consumes: `ts_now()`, `ym_format(data_pedido)`, `bronze_source('pedidos_vendas'|'clientes_cadastro')` from Task 1.
 - Produces: identical row-counts to pre-refactor (verified by `dbt build` PASS=49).
 
@@ -199,12 +203,14 @@ git commit -m "refactor(dbt): use compat macros, remove scattered target branche
 ### Task 3: Harden CI gate + lint + structure validator
 
 **Files:**
+
 - Modify: `.github/workflows/ci.yml:142-192`
 - Modify: `Makefile:77-80`
 - Modify: `scripts/validate_structure.py:33-66,295-306`
 - Test: `python scripts/validate_structure.py`
 
 **Interfaces:**
+
 - Consumes: Task 1-2 macro files (validator checks them).
 - Produces: `validate_structure.py` exit 0 only when macros + badges present + zero stray `target.type`; CI `all-checks-passed` exit non-zero on required failure.
 
@@ -227,8 +233,8 @@ Expected: 2 matches (lint-py never fails).
 
 ```make
 lint-py: ## Lint Python (ruff + mypy).
-	ruff check src/streaming src/airflow src/snowpark scripts
-	mypy --ignore-missing-imports src/streaming src/airflow scripts
+  ruff check src/streaming src/airflow src/snowpark scripts
+  mypy --ignore-missing-imports src/streaming src/airflow scripts
 ```
 
 `.github/workflows/ci.yml:142-152` replace `ruff check src/streaming scripts` with `ruff check src/streaming src/airflow scripts` and same for mypy (drop `src/snowpark` only if still missing stubs — keep `src/snowpark` if `89e7b19` revert desired; here include `src/airflow` + `scripts` + `src/streaming` minimum).
@@ -278,11 +284,13 @@ git commit -m "fix(ci): harden gate, expand lint, check compat macros"
 ### Task 4: Honest docs + hygiene (version + gitignore already ok)
 
 **Files:**
+
 - Modify: `README.md:1-10` (badges area), `02-architecture-design.md` (top), `04-data-governance-framework.md` (top)
 - Modify: `src/dbt/dbt_project.yml:2` (`0.1.0` → `0.2.0`)
 - Test: `npm run lint:md`, `python scripts/validate_structure.py`
 
 **Interfaces:**
+
 - Consumes: Task 3 validator (add badge check here if desired, else manual).
 - Produces: docs with `> **Status: ✅ Atual**` vs `> **Status: � planned Alvo**` markers; version aligned with README badge `0.2.0`.
 
@@ -332,6 +340,7 @@ git commit -m "docs: mark Atual vs Alvo, align dbt version to 0.2.0"
 ### Task 5: Bronze Snowflake-ready + Gold incremental (no apply)
 
 **Files:**
+
 - Create: `src/terraform/modules/snowflake/external_tables.tf`
 - Modify: `src/dbt/models/bronze/_sources.yml` (add external table meta + freshness)
 - Modify: `src/dbt/models/gold/gld_vendas__receita_mensal.sql:1-4` (incremental)
@@ -339,6 +348,7 @@ git commit -m "docs: mark Atual vs Alvo, align dbt version to 0.2.0"
 - Test: `terraform validate/test`, `dbt build`
 
 **Interfaces:**
+
 - Consumes: `bronze_source()` from Task 1 (Snowflake branch now resolves to real `source()` backed by this TF).
 - Produces: `snowflake_external_table` resources plan-clean; Gold `is_incremental()` path.
 
@@ -433,12 +443,14 @@ git commit -m "feat(bronze-gold): external tables ready, gold incremental"
 ### Task 6: SCD2 snapshots + LGPD ready + freshness strict
 
 **Files:**
+
 - Create: `src/dbt/snapshots/slv_clientes_snapshot.sql`
 - Create: `src/terraform/modules/snowflake/masking.tf`
 - Modify: `src/dbt/models/silver/slv_vendas__pedidos.yml` (document `_dbt_valid_from/to` as dedup, not SCD2, until snapshot cutover) OR rename comment
 - Test: `dbt snapshot`, `terraform test`, `dbt source freshness`
 
 **Interfaces:**
+
 - Consumes: external tables (Task 5), `bronze_source()` (Task 1).
 - Produces: `snapshot` relation with `dbt_valid_from/to`; `snowflake_masking_policy.pii_cpf` + `snowflake_row_access_policy` plan-clean (Alvo).
 
@@ -524,11 +536,13 @@ git commit -m "feat(governance): real SCD2 snapshot, LGPD masking ready"
 ### Task 7: Airflow lazy vars + slim build + FileQueue label
 
 **Files:**
+
 - Modify: `src/airflow/dags/hybrid_medallion_lakehouse_dbt.py:44-46,126-131,151-157`
 - Modify: `src/streaming/README.md` (one-line simulation label) — or `src/streaming/microbatch_consumer.py` docstring if README missing
 - Test: `ruff check src/airflow scripts`, `python -m py_compile`, DAG parse (if airflow installed) else import AST check
 
 **Interfaces:**
+
 - Consumes: `state:modified+` pattern (Task 5), compat macros (Tasks 1-2).
 - Produces: DAG with no parse-time `Variable.get()`, `dbt_build` uses `--select state:modified+`, freshness `trigger_rule=all_done` kept.
 
@@ -579,7 +593,7 @@ Run: `python -m py_compile src/airflow/dags/hybrid_medallion_lakehouse_dbt.py &&
 Expected: `OK`.
 
 Run: `python -c "import ast; src=open('src/airflow/dags/hybrid_medallion_lakehouse_dbt.py').read(); tree=ast.parse(src); top=[n for n in tree.body if isinstance(n, ast.Assign)]; print('module assigns:', len(top))"`
-Expected: no `Variable.get` in top-level assigns (manual confirm via grep: `Select-String -Path src/airflow/dags/*.py -Pattern 'Variable.get'` shows matches only inside `def `).
+Expected: no `Variable.get` in top-level assigns (manual confirm via grep: `Select-String -Path src/airflow/dags/*.py -Pattern 'Variable.get'` shows matches only inside `def`).
 
 - [ ] **Step 5: Commit**
 

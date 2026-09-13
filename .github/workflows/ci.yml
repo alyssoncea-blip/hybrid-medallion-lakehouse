@@ -131,10 +131,13 @@ jobs:
         env:
           DBT_DUCKDB_PATH: /tmp/lakehouse.duckdb
       - name: dbt source freshness (local)
-        # DuckDB freshness: warn-only until source-level timestamp exists (see Task 6 review); strict on Snowflake targets.
+        # dbt source freshness is informational on DuckDB local (no loaded_at_field);
+        # the hard gate is the file-mtime check below. Strict on Snowflake targets.
         run: cd src/dbt && dbt source freshness --target local --no-version-check || true
         env:
           DBT_DUCKDB_PATH: /tmp/lakehouse.duckdb
+      - name: Bronze freshness gate (file mtime)
+        run: python scripts/check_bronze_freshness.py --warn-hours 24 --error-hours 48
       - name: Upload DuckDB artifact
         if: always()
         uses: actions/upload-artifact@v5

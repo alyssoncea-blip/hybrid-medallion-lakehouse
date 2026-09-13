@@ -32,11 +32,11 @@ models:
               arguments:
                 values: ['ABERTO', 'PAGO', 'FATURADO', 'CANCELADO', 'DEVOLVIDO']
       - name: _dbt_valid_from
-        description: Início da validade do registro (SCD2).
+        description: Dedup diario (nao e SCD2; historico real em snapshots/slv_clientes_snapshot).
         tests:
           - not_null
       - name: _dbt_valid_to
-        description: Fim da validade do registro (SCD2). NULL = ativo.
+        description: Dedup diario (nao e SCD2; historico real em snapshots/slv_clientes_snapshot). NULL = ativo.
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:

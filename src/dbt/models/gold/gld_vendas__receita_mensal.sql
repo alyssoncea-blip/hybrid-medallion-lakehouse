@@ -1,5 +1,7 @@
 {{ config(
-    materialized='table',
+    materialized='incremental',
+    unique_key=['ano_mes', 'canal_venda', 'cliente_sk'],
+    on_schema_change='append_new_columns',
     tags=['gold', 'vendas', 'metric']
 ) }}
 
@@ -12,6 +14,12 @@ with pedidos as (
         status
     from {{ ref('slv_vendas__pedidos') }}
     where status in ('PAGO', 'FATURADO', 'CANCELADO', 'DEVOLVIDO')
+    -- Task 5 correction: plan sketch filtered `{{ this }}` (Gold) by
+    -- max(data_pedido), but Gold has no data_pedido column (it groups by
+    -- ano_mes). Use a Silver-native static recency window instead.
+    {% if is_incremental() %}
+        and data_pedido >= current_date - 90
+    {% endif %}
 ),
 
 agg as (

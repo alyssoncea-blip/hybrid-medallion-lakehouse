@@ -130,6 +130,12 @@ jobs:
         run: cd src/dbt && dbt build --target local --no-version-check
         env:
           DBT_DUCKDB_PATH: /tmp/lakehouse.duckdb
+      - name: dbt source freshness (local)
+        # `|| true` allowed here only: DuckDB source freshness relies on file mtime
+        # and warns without loaded_at_field until Task 6 wires strict freshness.
+        run: cd src/dbt && dbt source freshness --target local --no-version-check || true
+        env:
+          DBT_DUCKDB_PATH: /tmp/lakehouse.duckdb
       - name: Upload DuckDB artifact
         if: always()
         uses: actions/upload-artifact@v5

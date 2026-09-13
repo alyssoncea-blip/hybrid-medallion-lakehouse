@@ -10,6 +10,9 @@ sources:
     tables:
       - name: pedidos_vendas
         description: Pedidos de vendas extraídos do SAP SD/Oracle OMS.
+        freshness:
+          warn_after: {count: 24, period: hour}
+          error_after: {count: 48, period: hour}
         columns:
           - name: pedido_id
             description: Identificador do pedido.
@@ -24,6 +27,9 @@ sources:
 
       - name: clientes_cadastro
         description: Cadastro de clientes vindo do CRM.
+        freshness:
+          warn_after: {count: 24, period: hour}
+          error_after: {count: 48, period: hour}
         columns:
           - name: cliente_id
             description: Identificador do cliente (PK).

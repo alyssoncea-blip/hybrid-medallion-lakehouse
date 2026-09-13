@@ -37,6 +37,7 @@
 ### Task 1: lookback_filter macro + retire three_days_ago + enforce
 
 **Files:**
+
 - Create: `src/dbt/macros/compat/lookback_filter.sql`
 - Delete: `src/dbt/macros/three_days_ago.sql`
 - Modify: `src/dbt/models/silver/slv_vendas__pedidos.sql:9-14`
@@ -44,6 +45,7 @@
 - Modify: `scripts/validate_structure.py` (add function + wire in `main()`)
 
 **Interfaces:**
+
 - Consumes: `target.type`, nothing else.
 - Produces: `lookback_filter(date_col, days)` → SQL predicate string. Task 2 consumes nothing from Task 1 except the green gate.
 
@@ -132,11 +134,13 @@ git commit -m "refactor(dbt): centralize recency windows in lookback_filter, ret
 ### Task 2: Canonical merge Silver + honest project defaults
 
 **Files:**
+
 - Modify: `src/dbt/models/silver/slv_vendas__pedidos.sql:1-7`
 - Modify: `src/dbt/dbt_project.yml:31-44`
 - Test: `dbt build --target local` (full + repeat for incremental path)
 
 **Interfaces:**
+
 - Consumes: green gate from Task 1, `lookback_filter` (already used in the model).
 - Produces: model strategies equal project defaults. Task 3 consumes nothing except the green gate.
 
@@ -179,12 +183,14 @@ git commit -m "refactor(dbt): canonical merge silver, honest gold default"
 ### Task 3: Minimal contracts + exposure + ADR
 
 **Files:**
+
 - Modify: `src/dbt/models/silver/slv_vendas__pedidos.yml` (add `data_type` on keys)
 - Create: `src/dbt/models/gold/_exposures.yml`
 - Create: `docs/architecture/adr/silver-merge-and-lookback-filter.md`
 - Test: `dbt build`, `validate_structure`, `npm run lint:md`
 
 **Interfaces:**
+
 - Consumes: green gate from Task 2.
 - Produces: nothing downstream (last task). Docs only + yml metadata.
 

@@ -14,11 +14,13 @@ with pedidos as (
         status
     from {{ ref('slv_vendas__pedidos') }}
     where status in ('PAGO', 'FATURADO', 'CANCELADO', 'DEVOLVIDO')
-    -- Task 5 correction: plan sketch filtered `{{ this }}` (Gold) by
-    -- max(data_pedido), but Gold has no data_pedido column (it groups by
-    -- ano_mes). Use a Silver-native static recency window instead.
+    -- Incremental watermark on ano_mes (via gold_watermark()): recompute the
+    -- last N whole months from max Gold ano_mes so in-window late-arriving
+    -- Silver rows are absorbed by the merge on unique_key.
+    -- LIMIT (documented): Silver rows older than the watermark window are
+    -- skipped on incremental runs; a --full-refresh picks them up.
     {% if is_incremental() %}
-        and {{ lookback_filter('data_pedido', 90) }}
+        and {{ ym_format('data_pedido') }} >= {{ gold_watermark() }}
     {% endif %}
 ),
 

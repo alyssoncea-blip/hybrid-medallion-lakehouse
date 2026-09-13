@@ -3,7 +3,7 @@
 -- be reflected in Gold. Returned rows = FAIL (warn for now; promote to error
 -- once the incremental watermark is battle-tested).
 -- Scoped to Gold-eligible statuses ('ABERTO' never reaches Gold by design).
-{{ config(severity='warn') }}
+{{ config(severity='error') }}
 
 with silver_keys as (
     select distinct

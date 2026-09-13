@@ -3,7 +3,7 @@
 -- max(data_pedido). Rows = months Gold is behind -> FAIL (warn for now;
 -- promote to error once the incremental watermark is battle-tested).
 -- Scoped to Gold-eligible statuses ('ABERTO' never reaches Gold by design).
-{{ config(severity='warn') }}
+{{ config(severity='error') }}
 
 with silver_max as (
     select max(data_pedido) as max_data_pedido

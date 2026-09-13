@@ -37,7 +37,7 @@ models:
         relation: true
         columns: true
     gold:
-      +materialized: table
+      +materialized: incremental
       +tags: ["gold", "business"]
       +persist_docs:
         relation: true

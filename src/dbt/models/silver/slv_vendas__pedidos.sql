@@ -1,6 +1,6 @@
 {{ config(
     materialized='incremental',
-    incremental_strategy='delete+insert',
+    incremental_strategy='merge',
     unique_key='pedido_id',
     on_schema_change='append_new_columns',
     tags=['silver', 'vendas', 'conformed']

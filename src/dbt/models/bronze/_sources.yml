@@ -16,14 +16,21 @@ sources:
         columns:
           - name: pedido_id
             description: Identificador do pedido.
+            data_type: varchar
           - name: cliente_id
             description: FK para o cliente.
+            data_type: varchar
           - name: data_pedido
             description: Data do pedido.
+            data_type: date
           - name: valor_total
+            data_type: numeric(18,2)
           - name: status
+            data_type: varchar
           - name: canal_venda
+            data_type: varchar
           - name: vendedor_id
+            data_type: varchar
 
       - name: clientes_cadastro
         description: Cadastro de clientes vindo do CRM.
@@ -33,8 +40,13 @@ sources:
         columns:
           - name: cliente_id
             description: Identificador do cliente (PK).
+            data_type: varchar
           - name: nome
+            data_type: varchar
           - name: cpf
             description: CPF (mascarado in place via mask_cpf; LGPD).
+            data_type: varchar
           - name: email
+            data_type: varchar
           - name: data_cadastro
+            data_type: date

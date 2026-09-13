@@ -8,11 +8,13 @@ models:
     columns:
       - name: pedido_id
         description: Identificador único do pedido (PK).
+        data_type: varchar
         tests:
           - not_null
           - unique
       - name: cliente_id
         description: FK para a dimensão de cliente.
+        data_type: varchar
         tests:
           - not_null
           - relationships:
@@ -21,10 +23,12 @@ models:
                 field: cliente_id
       - name: data_pedido
         description: Data de criação do pedido.
+        data_type: date
         tests:
           - not_null
       - name: valor_total
         description: Valor total do pedido em BRL.
+        data_type: decimal(18,2)
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
@@ -34,13 +38,21 @@ models:
                 strictly: false
       - name: status
         description: Status do pedido no fluxo de vendas.
+        data_type: varchar
         tests:
           - not_null
           - accepted_values:
               arguments:
                 values: ['ABERTO', 'PAGO', 'FATURADO', 'CANCELADO', 'DEVOLVIDO']
+      - name: vendedor_id
+        description: Identificador do vendedor.
+        data_type: varchar
+      - name: canal_venda
+        description: Canal de venda do pedido.
+        data_type: varchar
       - name: _ingested_at
         description: Timestamp de ingestão no Bronze.
+        data_type: timestamp
         tests:
           - not_null
     tests:

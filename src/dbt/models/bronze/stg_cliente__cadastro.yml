@@ -8,21 +8,27 @@ models:
     columns:
       - name: cliente_id
         description: Identificador único do cliente (PK).
+        data_type: varchar
         tests:
           - not_null
           - unique
       - name: nome
         description: Nome completo ou razão social.
+        data_type: varchar
       - name: cpf
         description: CPF mascarado in place via macro mask_cpf (LGPD); raw somente com var unmask_pii=true no DuckDB.
+        data_type: varchar
         tests:
           - not_null
       - name: email
         description: E-mail principal do cliente.
+        data_type: varchar
       - name: data_cadastro
         description: Data de cadastro do cliente.
+        data_type: date
         tests:
           - not_null
       - name: _ingested_at
+        data_type: timestamp
         tests:
           - not_null

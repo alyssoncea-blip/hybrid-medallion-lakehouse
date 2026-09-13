@@ -1,0 +1,10 @@
+version: 2
+
+exposures:
+  - name: receita_mensal_bi
+    description: Receita liquida mensal por canal e cliente para dashboards de BI.
+    type: dashboard
+    owner:
+      name: data-engineering
+    depends_on:
+      - ref('gld_vendas__receita_mensal')

@@ -8,15 +8,18 @@ models:
     columns:
       - name: pedido_sk
         description: Surrogate key (hash determinístico) do pedido.
+        data_type: varchar
         tests:
           - not_null
           - unique
       - name: pedido_id
         description: ID natural do pedido vindo da fonte.
+        data_type: varchar
         tests:
           - not_null
       - name: cliente_sk
         description: SK do cliente (FK para slv_cliente__cadastro).
+        data_type: varchar
         tests:
           - not_null
       - name: data_pedido

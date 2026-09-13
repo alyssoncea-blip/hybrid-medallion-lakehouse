@@ -9,7 +9,7 @@
 with bronze as (
     select * from {{ ref('stg_vendas__pedidos') }}
     {% if is_incremental() %}
-      where data_pedido >= current_date - 3
+      where {{ lookback_filter('data_pedido', 3) }}
     {% endif %}
 ),
 

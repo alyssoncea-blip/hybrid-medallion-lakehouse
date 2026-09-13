@@ -18,7 +18,7 @@ with pedidos as (
     -- max(data_pedido), but Gold has no data_pedido column (it groups by
     -- ano_mes). Use a Silver-native static recency window instead.
     {% if is_incremental() %}
-        and data_pedido >= current_date - 90
+        and {{ lookback_filter('data_pedido', 90) }}
     {% endif %}
 ),
 

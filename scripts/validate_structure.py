@@ -274,6 +274,19 @@ def check_no_stray_target_type() -> int:
     return failures
 
 
+def check_no_inline_windows() -> int:
+    banner("No inline date windows in models/")
+    failures = 0
+    pattern = re.compile(r"current_date\s*-\s*\d+")
+    for f in (REPO_ROOT / "src" / "dbt" / "models").rglob("*.sql"):
+        if pattern.search(f.read_text(encoding="utf-8")):
+            fail(f"Inline date window in {f.relative_to(REPO_ROOT)} (use lookback_filter() from macros/compat)")
+            failures += 1
+    if failures == 0:
+        ok("No inline date windows in models/")
+    return failures
+
+
 def check_commit_messages() -> int:
     banner("Conventional Commits (git log)")
     failures = 0
@@ -324,6 +337,7 @@ def main() -> int:
     total += check_dbt_models_have_yml()
     total += check_tests_exist()
     total += check_no_stray_target_type()
+    total += check_no_inline_windows()
     total += check_commit_messages()
 
     banner("Summary")

@@ -1,5 +1,7 @@
 # Data Governance Framework
 
+> **Legenda:** ✅ Atual (roda local R$0 hoje) · 🔭 Alvo (desenhado, exige Snowflake/S3 — sem apply neste repo)
+
 ## Projeto: Hybrid Medallion Lakehouse
 
 > **Status:** v1.0 — Aprovação pendente pelo Comitê de Dados
@@ -181,7 +183,7 @@ Estabelecer o modelo de governança de dados para o **Hybrid Medallion Lakehouse
 - Execução automatizada via Snowflake `TIME_TRAVEL` + S3 Lifecycle Policies.
 - Toda exclusão precisa de ticket Jira aprovado pelo Owner.
 
-### 4.4 Política de Acesso (RBAC + ABAC)
+### 4.4 Política de Acesso (RBAC + ABAC) — 🔭 Alvo (SQL/Terraform prontos na Task 6, sem enforcement local)
 
 - **RBAC por papel:** `ROLE_DOMAIN_<X>_READER`, `ROLE_DOMAIN_<X>_WRITER`, `ROLE_GOLD_CONSUMER`, etc.
 - **ABAC por atributos:** tags de classificação, departamento, projeto, geografia.

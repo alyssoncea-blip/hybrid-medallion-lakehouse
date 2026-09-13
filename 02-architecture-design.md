@@ -1,5 +1,7 @@
 # Architecture Design Document — Hybrid Medallion Lakehouse
 
+> **Legenda:** ✅ Atual (roda local R$0 hoje) · 🔭 Alvo (desenhado, exige Snowflake/S3 — sem apply neste repo)
+
 ## 1. Executive Summary
 
 The Hybrid Medallion Lakehouse unifies object storage (S3/GCS) with a cloud-native warehouse (Snowflake) under a Bronze–Silver–Gold paradigm, ingesting raw events via batch, micro-batch, CDC, and APIs. Terraform codifies the entire infrastructure-as-code, while dbt + Snowpark own Silver/Gold transformations with tested lineage. Snowflake Horizon Catalog provides a system-of-record for governance, federated with Collibra/Atlan for enterprise stewardship, and OpenLineage emits a unified lineage graph across all producers and consumers. The target state is a multi-cloud, LGPD-compliant, low-latency platform that serves BI, ML, and operational analytics from a single trusted semantic layer.

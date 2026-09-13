@@ -1,5 +1,6 @@
 ﻿# Hybrid Medallion Lakehouse
 
+> **Legenda:** ✅ Atual (roda local R$0 hoje) · 🔭 Alvo (desenhado, exige Snowflake/S3 — sem apply neste repo)
 > Unified, governed, and cloud-agnostic data platform that turns raw multi-source data into trusted, analytics-ready assets through a Bronze–Silver–Gold architecture on Snowflake.
 
 ![Status](https://img.shields.io/badge/status-active-success)
@@ -171,16 +172,16 @@ flowchart LR
 | Layer            | Technology                                     | Purpose                                            |
 |------------------|------------------------------------------------|----------------------------------------------------|
 | Storage          | AWS S3 / GCS (cloud) or Parquet (local)        | Raw landing zone and external tables               |
-| Warehouse        | Snowflake (cloud) or DuckDB (local)            | Compute, governance, Bronze/Silver/Gold tables     |
-| Transformation   | dbt Core / dbt Cloud                           | Versioned SQL models, tests, documentation          |
+| Warehouse        | Snowflake (cloud) or DuckDB (local) (✅ Atual)      | Compute, governance, Bronze/Silver/Gold tables     |
+| Transformation   | dbt Core / dbt Cloud (✅ Atual)                | Versioned SQL models, tests, documentation          |
 | Custom Compute   | Snowpark (Python / Java / Scala)               | UDFs, stored procedures, complex ML workloads      |
-| Ingestion        | Snowpipe, Kafka Connect, API Connectors        | Streaming and batch data ingestion                 |
+| Ingestion        | Snowpipe, Kafka Connect, API Connectors (🔭 Alvo)  | Streaming and batch data ingestion                 |
 | Orchestration    | Apache Airflow, Snowflake Tasks               | Pipeline scheduling and dependency management      |
-| IaC              | Terraform                                      | Provisioning of Snowflake, S3, and networking      |
+| IaC              | Terraform (✅ Atual)                           | Provisioning of Snowflake, S3, and networking      |
 | Data Quality     | Great Expectations, dbt tests, Data Contracts  | Validation, anomaly detection, contract enforcement|
 | CI/CD            | GitHub Actions, Azure DevOps                   | Automated build, test, and deploy pipelines        |
-| Observability    | Grafana / Snowflake Account Usage, custom alerts | Monitoring, lineage, cost and freshness tracking   |
-| Governance       | Snowflake Horizon Catalog + Collibra/Atlan     | Access control, lineage, PII and LGPD compliance   |
+| Observability    | Grafana / Snowflake Account Usage, custom alerts (🔭 Alvo) | Monitoring, lineage, cost and freshness tracking   |
+| Governance       | Snowflake Horizon Catalog + Collibra/Atlan (🔭 Alvo) | Access control, lineage, PII and LGPD compliance   |
 
 ## Repository Structure
 

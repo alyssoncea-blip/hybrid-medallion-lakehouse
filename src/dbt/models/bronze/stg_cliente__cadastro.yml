@@ -14,7 +14,7 @@ models:
       - name: nome
         description: Nome completo ou razão social.
       - name: cpf
-        description: CPF (mascarado por LGPD em ambientes não-privilegiados).
+        description: CPF mascarado in place via macro mask_cpf (LGPD); raw somente com var unmask_pii=true no DuckDB.
         tests:
           - not_null
       - name: email

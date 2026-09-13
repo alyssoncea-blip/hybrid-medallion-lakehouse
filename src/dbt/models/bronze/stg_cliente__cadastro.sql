@@ -7,7 +7,7 @@ with source as (
     select
         cast(cliente_id as varchar)   as cliente_id,
         cast(nome as varchar)         as nome,
-        cast(cpf as varchar)          as cpf,
+        {{ mask_cpf('cpf') }}               as cpf,
         cast(email as varchar)        as email,
         cast(data_cadastro as date)   as data_cadastro,
         {{ ts_now() }}                as _ingested_at

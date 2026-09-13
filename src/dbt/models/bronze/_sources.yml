@@ -35,6 +35,6 @@ sources:
             description: Identificador do cliente (PK).
           - name: nome
           - name: cpf
-            description: CPF (mascarado em ambientes não-privilegiados).
+            description: CPF (mascarado in place via mask_cpf; LGPD).
           - name: email
           - name: data_cadastro

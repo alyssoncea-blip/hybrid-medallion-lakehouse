@@ -5,11 +5,7 @@
 
 with pedidos as (
     select
-        {% if target.type == 'snowflake' -%}
-        to_char(data_pedido, 'YYYY-MM')
-        {%- else -%}
-        strftime(data_pedido, '%Y-%m')
-        {%- endif %} as ano_mes,
+        {{ ym_format('data_pedido') }} as ano_mes,
         canal_venda,
         cliente_sk,
         valor_total,
@@ -40,5 +36,5 @@ select
     cancelamentos,
     devolucoes,
     qtd_pedidos,
-    {% if target.type == 'snowflake' %}current_timestamp(){% else %}now(){% endif %} as _gold_loaded_at
+    {{ ts_now() }} as _gold_loaded_at
 from agg

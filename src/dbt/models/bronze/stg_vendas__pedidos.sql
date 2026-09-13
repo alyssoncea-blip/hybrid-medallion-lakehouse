@@ -10,9 +10,6 @@
   Variável local_bronze_path é configurada em dbt_project.yml.
 #}
 
-{% set bronze_path = var('local_bronze_path') %}
-{% set ts_func = 'current_timestamp' if target.type == 'snowflake' else 'now' %}
-
 with source as (
     select
         cast(pedido_id as varchar)          as pedido_id,
@@ -22,8 +19,8 @@ with source as (
         upper(trim(status))                 as status,
         cast(vendedor_id as varchar)        as vendedor_id,
         cast(canal_venda as varchar)        as canal_venda,
-        {{ ts_func }}()                     as _ingested_at
-    from read_parquet('{{ bronze_path }}/pedidos_vendas/*.parquet')
+        {{ ts_now() }}                      as _ingested_at
+    from {{ bronze_source('pedidos_vendas') }}
 )
 
 select * from source

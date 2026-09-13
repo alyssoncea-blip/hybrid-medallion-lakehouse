@@ -23,7 +23,7 @@ renamed as (
         upper(trim(status))                                  as status,
         coalesce(vendedor_id, 'UNASSIGNED')                  as vendedor_id,
         coalesce(canal_venda, 'DESCONHECIDO')                as canal_venda,
-        {% if target.type == 'snowflake' %}current_timestamp(){% else %}now(){% endif %} as _dbt_valid_from,
+        {{ ts_now() }} as _dbt_valid_from,
         cast(null as timestamp)                              as _dbt_valid_to
     from bronze
 ),

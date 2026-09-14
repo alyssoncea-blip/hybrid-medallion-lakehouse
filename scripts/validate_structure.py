@@ -262,6 +262,44 @@ def check_tests_exist() -> int:
     return failures
 
 
+def check_observability_alerts() -> int:
+    banner("Observability alerts")
+    failures = 0
+    alerts_dir = REPO_ROOT / "observability" / "alerts"
+    ymls = sorted(alerts_dir.glob("*.yml")) if alerts_dir.is_dir() else []
+    if not ymls:
+        fail("No alert manifests in observability/alerts/*.yml")
+        return 1
+    ok(f"Found {len(ymls)} alert manifest(s)")
+    tests_dir = REPO_ROOT / "src" / "dbt" / "tests"
+    available = {p.stem for p in tests_dir.glob("*.sql")} if tests_dir.is_dir() else set()
+    for yml in ymls:
+        try:
+            text = yml.read_text(encoding="utf-8")
+            data = yaml.safe_load(text) if yaml is not None else None
+        except (OSError, ValueError) as exc:
+            fail(f"Alert manifest parse error in {yml.relative_to(REPO_ROOT)}: {exc}")
+            failures += 1
+            continue
+        if data is not None:
+            raw_alerts = data.get("alerts", []) if isinstance(data, dict) else []
+            refs = [
+                str(a.get("test", ""))
+                for a in raw_alerts
+                if isinstance(a, dict) and a.get("test")
+            ]
+        else:
+            # PyYAML unavailable: fall back to scanning `test:` scalars.
+            refs = re.findall(r"^\s*test:\s*(\S+)\s*$", text, flags=re.MULTILINE)
+        for ref in refs:
+            if ref in available:
+                ok(f"{yml.name} -> test '{ref}' exists")
+            else:
+                fail(f"{yml.name} references missing test '{ref}' (no src/dbt/tests/{ref}.sql)")
+                failures += 1
+    return failures
+
+
 def check_no_stray_target_type() -> int:
     banner("No stray target.type in models/")
     failures = 0
@@ -336,6 +374,7 @@ def main() -> int:
     total += check_mermaid_blocks()
     total += check_dbt_models_have_yml()
     total += check_tests_exist()
+    total += check_observability_alerts()
     total += check_no_stray_target_type()
     total += check_no_inline_windows()
     total += check_commit_messages()

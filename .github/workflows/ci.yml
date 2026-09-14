@@ -146,6 +146,19 @@ jobs:
           path: /tmp/lakehouse.duckdb
           retention-days: 7
           if-no-files-found: ignore
+      - name: Generate health report
+        if: always()
+        run: python scripts/generate_health_report.py --run-results src/dbt/target/run_results.json --out /tmp/health.md
+        env:
+          DBT_DUCKDB_PATH: /tmp/lakehouse.duckdb
+      - name: Upload health report artifact
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: lakehouse-health
+          path: /tmp/health.md
+          retention-days: 7
+          if-no-files-found: ignore
 
   python-lint:
     name: Python Lint (ruff + mypy)

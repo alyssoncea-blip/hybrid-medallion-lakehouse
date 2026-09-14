@@ -1,0 +1,35 @@
+# Gold alert manifest (validate-only as code, zero cloud cost).
+#
+# Each entry maps an operational alert to the dbt singular test (or Bronze
+# source) that backs it. scripts/validate_structure.py fails if any listed
+# `test` has no matching file in src/dbt/tests/*.sql; scripts/
+# generate_health_report.py joins this manifest with dbt run_results.json.
+#
+# Severity mirrors the test config in src/dbt/tests/:
+# - error alerts fail the build; warn alerts surface without blocking.
+# - revenue_negative stays warn BY DESIGN: the synthetic fixture generator
+#   produces negative-revenue (canal, cliente, month) combinations.
+
+version: 1
+
+alerts:
+  - name: gold_recency_lag
+    test: assert_gold_recency
+    severity: error
+
+  - name: late_data_gap
+    test: assert_late_data_covered
+    severity: error
+    window: gold_watermark_months_3
+
+  - name: revenue_negative
+    test: assert_revenue_not_negative
+    severity: warn
+    reason: synthetic data generates negatives
+
+  - name: bronze_stale
+    sources:
+      - pedidos_vendas
+      - clientes_cadastro
+    warn_hours: 24
+    error_hours: 48

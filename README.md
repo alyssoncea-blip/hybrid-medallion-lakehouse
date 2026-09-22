@@ -103,7 +103,7 @@ dbt build    # run all models + tests
 Expected output:
 
 ```
-Done. PASS=49 WARN=1 ERROR=0 SKIP=0 NO-OP=0 TOTAL=50
+Done. PASS=56 WARN=1 ERROR=0 SKIP=0 NO-OP=0 TOTAL=57
 ```
 
 The 1 WARN is `assert_revenue_not_negative` — expected with random synthetic data; flip to `severity: error` in production.
@@ -276,7 +276,7 @@ GitHub Actions runs on every push and PR. The default pipeline (R$ 0) covers:
 4. **Terraform Validate** — `fmt -check`, `init -backend=false`, `validate` for each of `local`, `dev`, `stg`, `prd`
 5. **Terraform Test** — `terraform test` on Snowflake and S3 modules (with `mock_provider`, no real cloud)
 6. **dbt Build (local)** — `dbt deps && dbt build --target local` against DuckDB; uploads `lakehouse.duckdb` as artifact
-7. **Python Lint** — `ruff` + `mypy` on `src/dbt` and `scripts`
+7. **Python Lint** — `ruff` + `mypy` on `src/streaming`, `src/airflow`, `src/snowpark`, and `scripts`
 
 A separate **dbt Build (Snowflake)** job runs **only if all required secrets are configured** in repository settings.
 

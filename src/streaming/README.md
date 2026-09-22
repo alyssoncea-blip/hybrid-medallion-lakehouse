@@ -1,4 +1,5 @@
 > **Status: 🔭 simulation Alvo** — FileQueue simula Kafka localmente; eleger 1 conector real (Snowpipe/Airbyte) ou aposentar.
+> **Gap → dbt:** output lands in `data/bronze/streaming/event_date=*/event_hour=*`; the `bronze_source()` macro globs `<table>/*.parquet` and does not match this Hive layout, and `scripts/generate_bronze.py` does not emit streaming fixtures. Streaming files are **landing-only** (not consumed by dbt) until a macro or connector change is chosen. Declared in `src/dbt/models/bronze/_sources.yml`.
 
 # Streaming Ingestion for Hybrid Medallion Lakehouse
 

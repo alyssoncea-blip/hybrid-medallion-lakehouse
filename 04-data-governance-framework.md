@@ -181,6 +181,7 @@ Estabelecer o modelo de governança de dados para o **Hybrid Medallion Lakehouse
 | Logs de auditoria | 7 anos (SOX) | Imutável (Object Lock) |
 
 - Execução automatizada via Snowflake `TIME_TRAVEL` + S3 Lifecycle Policies.
+- **Canonônico (Snowflake Time Travel, fonte = `src/dbt/dbt_project.yml` vars + `src/terraform/modules/snowflake/databases.tf`):** Bronze = 1 dia, Silver = 7 dias, Gold = 90 dias. As retenções da tabela acima (90d/2a/5a/7a) referem-se ao **lifecycle de object storage (S3/GCS)** — conceito distinto do Time Travel.
 - Toda exclusão precisa de ticket Jira aprovado pelo Owner.
 
 ### 4.4 Política de Acesso (RBAC + ABAC) — 🔭 Alvo (SQL/Terraform prontos na Task 6, sem enforcement local)

@@ -80,6 +80,8 @@ flowchart LR
 | **Gold** | Snowflake `ANALYTICS.GOLD` | Star schema / Data Vault 2.0 | dbt: business logic, KPIs, aggregations, ML features | Indefinida, com `TIME_TRAVEL` 90d | BI tools, ML platforms, Reverse ETL via API |
 | **Semantic** | Snowflake `ANALYTICS.SEMANTIC` | dbt metrics + Semantic Layer | Shared dimensions, certified metrics | Indefinida | BI/Notebooks |
 
+> **Nota de retenção:** os valores da coluna *Retenção* acima são **lifecycle de object storage / política de negócio**. O **Snowflake Time Travel canônico** é separado: Bronze 1d, Silver 7d, Gold 90d — fonte: `src/dbt/dbt_project.yml` vars + `src/terraform/modules/snowflake/databases.tf` (`data_retention_days`).
+
 ## 5. Technology Stack
 
 | Componente | Tecnologia | Propósito |

@@ -142,6 +142,8 @@ O projeto será considerado **bem-sucedido** quando, em produção por 90 dias c
 | **M5 — Governança & LGPD** | M10 | 02/01/2027 | 100% dos datasets catalogados com linhagem, classificação PII, RBAC e Row-Level Security auditáveis. | Planejado |
 | **M6 — Estabilização & Handover** | M12 | 28/02/2027 | Operação assistida por 30 dias, retrospectiva, handover para sustentação, baseline de FinOps validado. | Planejado |
 
+> **Nota (reconciliação de datas):** C3 = entrega do escopo funcional (28/11/2026); M6/M12 = encerramento do programa (28/02/2027), após janela de estabilização. Datas coexistem sem conflito.
+
 ---
 
 ## 7. Budget Estimate
@@ -195,7 +197,7 @@ O projeto será considerado **bem-sucedido** quando, em produção por 90 dias c
 
 - **C1.** Orçamento total aprovado de **R$ 4.850.000**, com tolerância de **±10%** sem nova aprovação.
 - **C2.** Dados pessoais devem permanecer em região brasileira; nenhum dado de vendas/estoque pode cruzar fronteira internacional sem aprovação do DPO.
-- **C3.** Prazo máximo de entrega: **28/11/2026**. Atrasos superiores a 60 dias exigem replanejamento formal e nova aprovação da Steering Committee.
+- **C3.** Prazo máximo de entrega do escopo funcional: **28/11/2026**. Atrasos superiores a 60 dias exigem replanejamento formal e nova aprovação da Steering Committee. _Não confundir com a data de encerramento do programa (M12 = 28/02/2027), que inclui estabilização e handover — ver §6._
 - **C4.** A plataforma deve cumprir o princípio de **least privilege** em 100% dos acessos produtivos.
 - **C5.** Toda tabela Gold deve ter **Data Owner formalmente designado** antes de ir para produção.
 - **C6.** Mudanças em produção passam por **pull request + aprovação de 2 reviewers + pipeline CI/CD**; nenhum deploy manual é permitido.

@@ -59,7 +59,7 @@ dbt build --target local
 Expected:
 
 ```
-Done. PASS=49 WARN=1 ERROR=0 SKIP=0 NO-OP=0 TOTAL=50
+Done. PASS=56 WARN=1 ERROR=0 SKIP=0 NO-OP=0 TOTAL=57
 ```
 
 Query the Gold layer:

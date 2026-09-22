@@ -202,6 +202,8 @@ Adotamos abordagem híbrida baseada em **ISO 31000:2018** (framework de gestão 
 | Logs de auditoria | 90 dias hot | 5 anos S3 Glacier | Purge após 5 anos |
 | Backups de banco | 30 dias hot | 5 anos | — |
 
+> **Nota de retenção:** valores acima = lifecycle de object storage / política de negócio. **Snowflake Time Travel canônico** (fonte: `src/dbt/dbt_project.yml` vars + `databases.tf`): Bronze 1d, Silver 7d, Gold 90d — confira as linhas "Snowflake Time Travel / Fail-safe" apenas como referência ilustrativa de defaults da plataforma.
+
 **Descarte seguro**: shredding de mídias físicas, cryptographic erase (apagar chaves KMS) para cloud, certificação de descarte por fornecedor.
 
 ### 4.6 Direitos dos Titulares e Atendimento

@@ -7,6 +7,12 @@ sources:
       (DuckDB) ou external tables no Snowflake (targets dev/stg/prd).
     config:
       tags: ["bronze", "raw"]
+    # Gap known: the FileQueue streaming pipeline (src/streaming) lands events in
+    # data/bronze/streaming/event_date=*/event_hour=* — the bronze_source() macro
+    # globs <table>/*.parquet and does not match that Hive layout, and
+    # generate_bronze.py does not emit streaming fixtures. Streaming output is
+    # landing-only 🔭 (not consumed by dbt) until a connector or macro change is
+    # chosen. See src/streaming/README.md.
     tables:
       - name: pedidos_vendas
         description: Pedidos de vendas extraídos do SAP SD/Oracle OMS.

@@ -578,3 +578,18 @@ gantt
 **Document owner:** Program Manager, Hybrid Medallion Lakehouse
 **Next review:** End of Phase 0
 **Approval required from:** Executive Sponsor, CIO, Data Governance Lead
+
+---
+
+## Appendix C — Known gaps (honest tracker)
+
+| Gap | Status | Notes |
+|---|---|---|
+| Streaming → dbt not wired | 🔭 | `src/streaming` lands Hive-partitioned Parquet; `bronze_source()` globs `*.parquet` only. Landing-only until macro/connector choice. Declared in `_sources.yml` + `src/streaming/README.md`. |
+| Empty scaffold dirs | ✅ tracked | `pipelines/`, `data-quality/`, `src/ingestion/`, `docs/runbooks/`, `docs/governance/` now have README.md explaining ✅ vs 🔭. |
+| Release doc count drift | ✅ fixed | `docs/RELEASE-v0.2.0.md` updated to `PASS=56 … TOTAL=57` matching README. |
+| Charter date inconsistency | ✅ resolved | `01-project-charter.md`: reconciled — C3 = entrega do escopo funcional (28/11/2026); M6/M12 = encerramento do programa (28/02/2027), inclui estabilização/handover. Nota em §6 e §9.2 (C3). |
+| Retention multi-value | ✅ resolved | Canônico Snowflake Time Travel = 1/7/90 dias (`dbt_project.yml` vars + `databases.tf`). Notas de distinção (Time Travel vs S3 lifecycle) adicionadas em `02-architecture-design.md`, `04-data-governance-framework.md`, `05-risks-and-compliance.md`. |
+| Snowpark lint debt (ruff + mypy) | ✅ resolved | 57 erros ruff corrigidos (constantes `PRICE_BUCKET_*`, imports, whitespace); mypy 0 erros com `ignore_missing_imports`. `src/snowpark` incluído em Makefile `lint-py`, CI `python-lint` e pre-commit. |
+
+**Checkbox policy:** nenhum checkbox de milestone/gate enterprise foi marcado — F1–F5 entregaram infraestrutura de teste/CI/CD/docs, não gates de negócio (sponsor sign-off, MSA, DPIA etc.). Marcar apenas com evidência auditable.

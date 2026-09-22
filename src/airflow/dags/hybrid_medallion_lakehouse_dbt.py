@@ -131,7 +131,7 @@ with DAG(
             bash_command=(
                 "cd {{ var.value.dbt_project_dir | default('/opt/airflow/dbt', true) }} && "
                 "dbt build --target {{ var.value.dbt_target | default('local', true) }} "
-                "--select state:modified+ --no-version-check"
+                "--no-version-check"
             ),
             env=DBT_ENV,
             execution_timeout=timedelta(hours=1),

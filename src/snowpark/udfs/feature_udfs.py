@@ -4,24 +4,27 @@ Snowpark UDFs for reusable feature engineering.
 These UDFs can be registered in Snowflake and used in SQL queries.
 """
 
-from snowflake.snowpark import Session
-from snowflake.snowpark.functions import udf
-from snowflake.snowpark.types import StringType, DoubleType, IntegerType
 import re
 
+from snowflake.snowpark import Session
+from snowflake.snowpark.functions import udf
+from snowflake.snowpark.types import DoubleType, IntegerType, StringType
 
-from typing import Optional
+PRICE_BUCKET_LOW_MAX = 50.0
+PRICE_BUCKET_MEDIUM_MAX = 200.0
+PRICE_BUCKET_HIGH_MAX = 500.0
+
 
 # ─── Price bucket UDF ───
-def price_bucket_udf(price: Optional[float]) -> str:
+def price_bucket_udf(price: float | None) -> str:
     """Categorize price into buckets."""
     if price is None:
         return "UNKNOWN"
-    if price < 50:
+    if price < PRICE_BUCKET_LOW_MAX:
         return "LOW"
-    elif price < 200:
+    if price < PRICE_BUCKET_MEDIUM_MAX:
         return "MEDIUM"
-    elif price < 500:
+    if price < PRICE_BUCKET_HIGH_MAX:
         return "HIGH"
     return "PREMIUM"
 
@@ -61,10 +64,10 @@ def name_complexity_udf(name: str) -> int:
     return len(name.strip())
 
 
-def register_udfs(session: Session) -> dict:
+def register_udfs(_session: Session) -> dict:
     """Register all UDFs in Snowflake session and return them."""
-    
-    udfs = {
+
+    return {
         "price_bucket": udf(
             price_bucket_udf,
             return_type=StringType(),
@@ -102,14 +105,12 @@ def register_udfs(session: Session) -> dict:
             replace=True,
         ),
     }
-    
-    return udfs
 
 
 # Example usage in SQL:
 """
 -- After registering UDFs, use in SQL:
-SELECT 
+SELECT
     sku_produto,
     nome_produto,
     preco_unitario,
@@ -127,7 +128,7 @@ if __name__ == "__main__":
     test_prices = [25.0, 150.0, 350.0, 750.0, None]
     for p in test_prices:
         print(f"price={p} -> bucket={price_bucket_udf(p)}")
-    
+
     test_skus = ["PROD-001", "ABC", "ITEM-12345", ""]
     for s in test_skus:
         print(f"sku={s!r} -> suffix={sku_numeric_suffix_udf(s)}")

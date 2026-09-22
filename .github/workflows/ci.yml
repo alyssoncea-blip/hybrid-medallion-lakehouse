@@ -148,7 +148,7 @@ jobs:
           if-no-files-found: ignore
       - name: Generate health report
         if: always()
-        run: python scripts/generate_health_report.py --run-results src/dbt/target/run_results.json --out /tmp/health.md
+        run: python scripts/generate_health_report.py --run-results src/dbt/target/run_results.json --out /tmp/health.md --fail-on-error
         env:
           DBT_DUCKDB_PATH: /tmp/lakehouse.duckdb
       - name: Upload health report artifact
@@ -169,8 +169,80 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install "ruff==0.15.12" "mypy==1.19.1" types-PyYAML
-      - run: ruff check src/streaming src/airflow scripts
-      - run: mypy --ignore-missing-imports src/streaming src/airflow scripts
+      - run: ruff check src/streaming src/airflow src/snowpark scripts conftest.py
+      - run: mypy --ignore-missing-imports src/streaming src/airflow src/snowpark scripts
+
+  python-test:
+    name: Python Tests (pytest + coverage)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov pydantic pyarrow pyyaml
+      - name: Run pytest with coverage
+        run: |
+          python -m pytest -v \
+            --cov --cov-report=term-missing --cov-report=xml \
+            --cov-fail-under=60
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          retention-days: 7
+          if-no-files-found: ignore
+
+  security-scan:
+    name: Security Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Gitleaks (secrets)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
+      - name: Trivy (filesystem misconfig + secrets)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          format: table
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Bandit (Python SAST)
+        run: |
+          pip install bandit
+          bandit -r src/streaming src/airflow scripts -ll -ii
+      - name: pip-audit (dependency CVEs)
+        run: |
+          pip install pip-audit
+          pip-audit --strict --progress-spinner off || true
+
+  container-scan:
+    name: Container Build + Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Docker build (Airflow image)
+        run: docker build -f Dockerfile.airflow -t hybrid-medallion-airflow:ci .
+      - name: Trivy (image scan)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: hybrid-medallion-airflow:ci
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          format: table
 
   all-checks-passed:
     name: All Checks Passed
@@ -183,26 +255,27 @@ jobs:
       - terraform-test
       - dbt-build-local
       - python-lint
+      - python-test
+      - security-scan
+      - container-scan
     if: always()
     steps:
       - name: Report check results
         run: |
           echo "=== Core Checks (required) ==="
-          for check in "markdown-lint" "structure-validate" "terraform" "terraform-test" "dbt-build-local"; do
+          for check in "markdown-lint" "structure-validate" "terraform" "terraform-test" "dbt-build-local" "python-lint" "python-test" "security-scan" "container-scan"; do
             result_var="NEEDS_${check//-/_}_RESULT"
             result="${!result_var}"
             echo "  $check: $result"
           done
           echo ""
-          echo "=== Optional Checks (continue-on-error) ==="
-          for check in "mermaid-render" "python-lint"; do
-            result_var="NEEDS_${check//-/_}_RESULT"
-            result="${!result_var}"
-            echo "  $check: $result"
-          done
+          echo "=== Optional Checks ==="
+          result="${NEEDS_MERMAID_RENDER_RESULT}"
+          echo "  mermaid-render: $result"
           echo ""
-          if [ "$NEEDS_MARKDOWN_LINT_RESULT" != "success" ] || [ "$NEEDS_STRUCTURE_VALIDATE_RESULT" != "success" ] || [ "$NEEDS_TERRAFORM_RESULT" != "success" ] || [ "$NEEDS_TERRAFORM_TEST_RESULT" != "success" ] || [ "$NEEDS_DBT_BUILD_LOCAL_RESULT" != "success" ]; then
+          if [ "$NEEDS_MARKDOWN_LINT_RESULT" != "success" ] || [ "$NEEDS_STRUCTURE_VALIDATE_RESULT" != "success" ] || [ "$NEEDS_TERRAFORM_RESULT" != "success" ] || [ "$NEEDS_TERRAFORM_TEST_RESULT" != "success" ] || [ "$NEEDS_DBT_BUILD_LOCAL_RESULT" != "success" ] || [ "$NEEDS_PYTHON_LINT_RESULT" != "success" ] || [ "$NEEDS_PYTHON_TEST_RESULT" != "success" ] || [ "$NEEDS_SECURITY_SCAN_RESULT" != "success" ] || [ "$NEEDS_CONTAINER_SCAN_RESULT" != "success" ]; then
             echo "Required checks failed."
+            echo "GATE_FAILED=true" >> "$GITHUB_ENV"
             exit 1
           fi
           echo "All required checks passed."
@@ -214,3 +287,24 @@ jobs:
           NEEDS_TERRAFORM_TEST_RESULT: ${{ needs.terraform-test.result }}
           NEEDS_DBT_BUILD_LOCAL_RESULT: ${{ needs.dbt-build-local.result }}
           NEEDS_PYTHON_LINT_RESULT: ${{ needs.python-lint.result }}
+          NEEDS_PYTHON_TEST_RESULT: ${{ needs.python-test.result }}
+          NEEDS_SECURITY_SCAN_RESULT: ${{ needs.security-scan.result }}
+          NEEDS_CONTAINER_SCAN_RESULT: ${{ needs.container-scan.result }}
+      - name: Notify failure (Slack webhook)
+        # Real notification channel: set the optional SLACK_WEBHOOK_URL
+        # repository secret (Settings → Secrets and variables → Actions).
+        # Skipped silently when the secret is not configured.
+        if: env.GATE_FAILED == 'true'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          if [ -z "$SLACK_WEBHOOK_URL" ]; then
+            echo "SLACK_WEBHOOK_URL not configured — skipping notification."
+            exit 0
+          fi
+          payload=$(printf '{"text":"%s pipeline FAILED: %s (branch %s, commit %s)"}' \
+            "${{ github.repository }}" \
+            "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            "${{ github.ref_name }}" \
+            "${{ github.sha }}")
+          curl -sS -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL"

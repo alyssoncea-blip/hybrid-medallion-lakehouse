@@ -30,6 +30,12 @@ repos:
     rev: v0.20.0
     hooks: []
 
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.12
+    hooks:
+      - id: ruff
+        args: [--fix]
+
   - repo: local
     hooks:
       - id: terraform-fmt
@@ -38,3 +44,9 @@ repos:
         language: system
         files: \.tf$
         pass_filenames: false
+      - id: mypy
+        name: mypy
+        entry: mypy --ignore-missing-imports src/streaming src/airflow src/snowpark scripts
+        language: system
+        pass_filenames: false
+        types: [python]

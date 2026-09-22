@@ -15,13 +15,27 @@
         "strict_required_status_checks_policy": true,
         "do_not_enforce_on_create": true,
         "required_status_checks": [
+          {"context": "All Checks Passed"},
           {"context": "markdown-lint"},
           {"context": "structure-validate"},
           {"context": "terraform"},
           {"context": "terraform-test"},
-          {"context": "dbt-build-local"}
+          {"context": "dbt-build-local"},
+          {"context": "python-lint"},
+          {"context": "python-test"},
+          {"context": "security-scan"}
         ]
       }
+    },
+    {
+      "type": "pull_request",
+      "parameters": {
+        "required_approving_review_count": 1,
+        "dismiss_stale_reviews_on_push": true,
+        "require_code_owner_review": true,
+        "required_review_thread_resolution": true
+      }
     }
-  ]
+  ],
+  "bypass_actors": []
 }

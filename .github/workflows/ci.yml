@@ -211,7 +211,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
       - name: Trivy (filesystem misconfig + secrets)
-        uses: aquasecurity/trivy-action@v0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           severity: CRITICAL,HIGH
@@ -237,7 +237,7 @@ jobs:
       - name: Docker build (Airflow image)
         run: docker build -f Dockerfile.airflow -t hybrid-medallion-airflow:ci .
       - name: Trivy (image scan)
-        uses: aquasecurity/trivy-action@v0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: hybrid-medallion-airflow:ci
           severity: CRITICAL,HIGH

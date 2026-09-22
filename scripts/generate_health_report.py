@@ -132,7 +132,8 @@ def query_max_ano_mes() -> str:
     try:
         con = duckdb.connect(str(db_path), read_only=True)
         try:
-            row = con.execute(f"select max(ano_mes) from {GOLD_TABLE}").fetchone()
+            # GOLD_TABLE is a module constant (not user input); nosec for bandit B608
+            row = con.execute(f"select max(ano_mes) from {GOLD_TABLE}").fetchone()  # nosec B608
         finally:
             con.close()
     except duckdb.Error as exc:

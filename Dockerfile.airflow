@@ -3,6 +3,10 @@
 #
 # Multi-stage: build wheels with compilers, then install into the final
 # image WITHOUT gcc/g++/libpq-dev to keep the runtime attack surface small.
+#
+# The Airflow image is a venv rooted at /home/airflow/.local (sys.prefix),
+# so plain pip installs land on sys.path; --prefix=/usr/local would not.
+# The builder stage is discarded; only the venv dir is copied into runtime.
 
 FROM apache/airflow:2.9.3-python3.11 AS builder
 
@@ -17,14 +21,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 USER airflow
 
 COPY src/airflow/requirements.txt /requirements.txt
-RUN pip install --no-cache-dir --prefix=/install -r /requirements.txt
+RUN pip install --no-cache-dir -r /requirements.txt
 
 # -------- Final stage ------------------------------------------------------
 FROM apache/airflow:2.9.3-python3.11
 
 USER root
-# Copy only the installed packages from the builder (no compilers, no caches)
-COPY --from=builder /install /usr/local
+# Replace the base venv wholesale: a plain COPY merge would leave stale
+# dist-info dirs (e.g. opentelemetry-proto 1.25 vs 1.44) from the base image.
+# The builder starts from the same base, so its .local is a superset.
+RUN rm -rf /home/airflow/.local
+# Copy the venv with new/updated packages from the builder
+# (no compilers, no caches). Same path in both stages.
+COPY --from=builder /home/airflow/.local /home/airflow/.local
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     && rm -rf /var/lib/apt/lists/*

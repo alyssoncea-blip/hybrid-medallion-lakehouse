@@ -5,3 +5,13 @@ dbt-core==1.11.8
 dbt-duckdb==1.10.1
 dbt-snowflake==1.12.0
 pyarrow==15.0.0
+# The Airflow 2.9.3 base image ships opentelemetry 1.25.0 (protobuf<5),
+# which conflicts with dbt-core (protobuf>=6,<7). Upgrade the otel stack
+# so protobuf 6.x resolves (otel-proto 1.44.0 allows protobuf>=5,<8).
+opentelemetry-api==1.44.0
+opentelemetry-sdk==1.44.0
+opentelemetry-exporter-otlp==1.44.0
+opentelemetry-exporter-otlp-proto-grpc==1.44.0
+opentelemetry-exporter-otlp-proto-http==1.44.0
+opentelemetry-proto==1.44.0
+opentelemetry-semantic-conventions==0.65b0

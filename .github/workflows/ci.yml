@@ -140,7 +140,7 @@ jobs:
         run: python scripts/check_bronze_freshness.py --warn-hours 24 --error-hours 48
       - name: Upload DuckDB artifact
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: lakehouse-duckdb
           path: /tmp/lakehouse.duckdb
@@ -153,7 +153,7 @@ jobs:
           DBT_DUCKDB_PATH: /tmp/lakehouse.duckdb
       - name: Upload health report artifact
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: lakehouse-health
           path: /tmp/health.md
@@ -191,7 +191,7 @@ jobs:
             --cov-fail-under=60
       - name: Upload coverage report
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-xml
           path: coverage.xml

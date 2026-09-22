@@ -76,9 +76,8 @@ lint-tf-fix: ## Auto-format Terraform code.
 
 .PHONY: lint-py
 lint-py: ## Lint Python (ruff + mypy).
-	# snowpark kept OUT: 78 pre-existing errors, no owner (see Task 3 review)
-	ruff check src/streaming src/airflow scripts
-	mypy --ignore-missing-imports src/streaming src/airflow scripts
+	ruff check src/streaming src/airflow src/snowpark scripts conftest.py
+	mypy --ignore-missing-imports src/streaming src/airflow src/snowpark scripts
 
 # -------- Validate ---------------------------------------------------------
 
@@ -109,13 +108,17 @@ validate-structure: ## Lightweight repo structure check (no external deps).
 # -------- Test -------------------------------------------------------------
 
 .PHONY: test
-test: test-md test-tf ## Fast tests (docs + terraform).
+test: test-md test-tf test-py ## Fast tests (docs + terraform + pytest).
 
 .PHONY: test-md
 test-md: lint-md ## Lint markdown as test gate.
 
 .PHONY: test-tf
 test-tf: validate-tf lint-tf ## Terraform validate + format check.
+
+.PHONY: test-py
+test-py: ## Run pytest with coverage (same gate as CI).
+	$(PYTHON) -m pytest -v --cov --cov-report=term-missing --cov-fail-under=60
 
 .PHONY: test-all
 test-all: lint validate test validate-tf-test ## Full local CI gate (lint + validate + test + tf test).
@@ -152,6 +155,7 @@ dbt-seed: ## dbt seed (reference data) on TARGET.
 e2e-local: ## Generate fixtures + dbt build + pytest (R$ 0, no cloud).
 	$(MAKE) bronze-generate
 	$(MAKE) dbt-build
+	$(MAKE) test-py
 	@echo ""
 	@echo "✅ End-to-end local build complete!"
 	@echo "Query results: duckdb C:/Users/alyss/data/lakehouse.duckdb -c 'select * from main.gld_vendas__receita_mensal limit 10'"

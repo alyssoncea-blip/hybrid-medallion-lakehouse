@@ -44,6 +44,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-results", required=True, help="Path to dbt run_results.json")
     parser.add_argument("--out", required=True, help="Path to write the Markdown report")
+    parser.add_argument(
+        "--fail-on-error",
+        action="store_true",
+        help="Exit non-zero when any dbt result has ERROR status (CI gate).",
+    )
     return parser.parse_args(argv)
 
 
@@ -213,6 +218,9 @@ def main(argv: list[str] | None = None) -> int:
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(report, encoding="utf-8")
     print(f"Health report written to {out_path} " f"(PASS={counts['PASS']} WARN={counts['WARN']} ERROR={counts['ERROR']})")
+    if args.fail_on_error and counts["ERROR"] > 0:
+        print(f"ERROR: {counts['ERROR']} dbt result(s) in ERROR state.", file=sys.stderr)
+        return 1
     return 0
 
 

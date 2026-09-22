@@ -3,6 +3,43 @@ line-length = 100
 target-version = "py311"
 extend-exclude = ["dbt_packages", "target", "logs"]
 
+# Dívida de tipagem em src/snowpark quitada (ruff 0 erros + mypy 0 erros com
+# ignore_missing_imports — stubs Snowpark ausentes fora do gate, idem CI).
+# exclude abaixo mantém apenas artefatos gerados.
+[tool.mypy]
+python_version = "3.11"
+exclude = ["dbt_packages/", "target/", "logs/", "src/dbt/", ".mypy_cache/"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["src", "scripts"]
+python_files = ["test_*.py"]
+addopts = "-ra --strict-markers"
+markers = [
+    "airflow: tests that require the airflow package",
+    "slow: long-running tests",
+]
+
+[tool.coverage.run]
+source = ["src", "scripts"]
+branch = true
+omit = [
+    "*/tests/*",
+    "src/snowpark/*",
+    "*/__init__.py",
+]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "@overload",
+]
+
 [tool.ruff.lint]
 select = [
     "E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RUF",

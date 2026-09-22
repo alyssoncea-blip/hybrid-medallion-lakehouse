@@ -20,7 +20,7 @@ from src.streaming.schemas.events import ClienteEvent, PedidoEvent, ProdutoEvent
 def temp_queue_root():
     """Create a temporary queue directory for testing."""
     temp_dir = tempfile.mkdtemp()
-    yield tempfile.mkdtemp()
+    yield temp_dir
     shutil.rmtree(temp_dir, ignore_errors=True)
 
 

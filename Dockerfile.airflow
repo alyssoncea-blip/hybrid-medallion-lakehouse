@@ -8,7 +8,7 @@
 # so plain pip installs land on sys.path; --prefix=/usr/local would not.
 # The builder stage is discarded; only the venv dir is copied into runtime.
 
-FROM apache/airflow:2.9.3-python3.11 AS builder
+FROM apache/airflow:3.3.2-python3.11 AS builder
 
 USER root
 
@@ -24,7 +24,7 @@ COPY src/airflow/requirements.txt /requirements.txt
 RUN pip install --no-cache-dir -r /requirements.txt
 
 # -------- Final stage ------------------------------------------------------
-FROM apache/airflow:2.9.3-python3.11
+FROM apache/airflow:3.3.2-python3.11
 
 USER root
 # Replace the base venv wholesale: a plain COPY merge would leave stale
